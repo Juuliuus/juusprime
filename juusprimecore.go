@@ -6,7 +6,6 @@ package juusprime
 
 import (
 	"crypto/md5"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -61,8 +60,9 @@ var (
 	currPrecision                                   uint
 	big0, big1, big2, big5, big19                   *big.Int
 	big12, big16, big18, big22, big24, big28, big29 *big.Int
-	TemplateLength                                  *big.Int
-	basisBegin, basisLen, basisEnd                  *big.Int
+	//This a constant used a lot in big.Int calcs, it is the length of a Template (30)
+	TemplateLength                 *big.Int
+	basisBegin, basisLen, basisEnd *big.Int
 )
 
 const (
@@ -345,8 +345,7 @@ func TNumToBasisNum(tNum, returnHereBasisNum *big.Int) error {
 	iCalcA.Sub(tNum, basisBegin)
 	returnHereBasisNum.Set(iCalcA.Div(iCalcA, basisLen))
 	if tNum.Cmp(basisBegin) < 0 {
-		return errors.New(fmt.Sprintf("TNumToBasisNum: TNumber '%v' is less than beg. basis # '%v', meaningless result.",
-			tNum, basisBegin))
+		return fmt.Errorf("TNumToBasisNum: TNumber '%v' is less than beg. basis # '%v', meaningless result.", tNum, basisBegin)
 	}
 	return nil
 }
@@ -357,8 +356,7 @@ func IntToBasisNum(anInt, returnHereBasisNum *big.Int) error {
 	//basisNum = (tNum - basisBegin) div basisLen
 	TNumToBasisNum(IntToTNum(anInt), returnHereBasisNum)
 	if anInt.Cmp(big.NewInt(835)) < 0 {
-		return errors.New(fmt.Sprintf("IntToBasisNum: int '%v' is less than beg. basis int '%d', meaningless result.",
-			anInt, 835))
+		return fmt.Errorf("IntToBasisNum: int '%v' is less than beg. basis int '%d', meaningless result.", anInt, 835)
 	}
 	return nil
 }

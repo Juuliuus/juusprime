@@ -92,7 +92,7 @@ func TestInterface(t *testing.T) {
 	}
 }
 
-//TestFindingN : The calculation of "n" is extemely important in this
+//TestFindingN : The calculation of "n" is extremely important in this
 //package, it must be accurate and rounded/floor'd properly. There are
 //two methods to do this an original complicated but algebraically accurate
 //func and a re-worked function that uses a shortcut. This tests that These

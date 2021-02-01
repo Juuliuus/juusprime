@@ -68,6 +68,53 @@ func (p *primeBase) NaturalProgressionAtIdx(idx int) (*big.Int, error) {
 	return p.naturalProgression[idx], nil
 }
 
+//fillNaturalProgression : prime struct method. The natural progression of
+//the prime's crossings as it moves through the template numbers.
+func (p *primeBase) fillNaturalProgression() {
+	if p == nil {
+		fmt.Println("TODO: determine if methods implementing interfaces should always have nil check.")
+		panic("panicing, don't know what to do about this yet. Would be uncommon.")
+	}
+	/*
+		The point of the primes < 30 is to generate the 29Basis pattern that is repeatedly followed
+		out to infinity. Rather than calculate each crossing individually, this below
+		allows one to calculate the crossings at any Template# and then "roll" out to any
+		other Template#. This also allows looking at any region you like...
+		Natural Progression is, in mod, the crossings from 0 to Prime-1 allowing one to
+		look up the current effect at the current idx (0 to Prime-1).
+
+		This func is used heavily in the Primes <= 29. It is available in Primes >29 but really only useful
+		there for informational purposes. Position finding is done with other methods in primes 31 and greater.
+
+		This starts at the Primes startTNum and increments over all values of the
+		prime (0 to prime.value-1) to calculate the order in which the prime crosses TNum boundaries
+	*/
+	tNum := big.NewInt(0).Set(p.startTemplateNum)
+	for i := 0; i < len(p.naturalProgression); i++ {
+		p.naturalProgression[i] = CrossingAtTNumMod(p.value, tNum)
+		tNum.Add(tNum, big1) //move to next TNumber
+	}
+}
+
+//getNaturalProgressionIdx : internal use only; used only in specific
+//situations for LTE 29's
+func (p *primeBase) getNaturalProgressionIdx(tNumber *big.Int) int {
+	cNum := CrossingAtTNumMod(p.value, tNumber)
+	for i := 0; i < int(p.value.Int64()); i++ {
+		if cNum.Cmp(p.naturalProgression[i]) == 0 {
+			return i
+		}
+	}
+	return -1
+}
+
+//getCrossingNumber : internal use only and of limited usefulness;
+//used only in showing "raw" details for GTE 31s; from older pascal code
+//could be refactored?
+func (p *primeBase) getCrossingNumber(naturalProgressionIdx int) *big.Int {
+	return p.naturalProgression[naturalProgressionIdx]
+}
+
 //PrimeLTE29 : Structure to use for primes 7 to less than or equal to 29.
 //Primes LTE 29 are useful only in generating the sequence showing all
 //possible prime sextuplets (the 29Basis)
@@ -138,9 +185,9 @@ func NewPrimeLTE29(prime *big.Int) *PrimeLTE29 {
 
 //fillEffectsMap : internal function used to make lookup of an effect
 //at a crossing number more intuitive
-func (p *PrimeLTE29) fillEffectsMap() {
-	for i := 0; i < len(p.Prime.naturalProgression); i++ {
-		p.crossNumEffect[p.Prime.naturalProgression[i]] = p.GetEffect(p.Prime.naturalProgression[i])
+func (prime *PrimeLTE29) fillEffectsMap() {
+	for i := 0; i < len(prime.Prime.naturalProgression); i++ {
+		prime.crossNumEffect[prime.Prime.naturalProgression[i]] = prime.GetEffect(prime.Prime.naturalProgression[i])
 	}
 }
 
@@ -161,34 +208,6 @@ func (p *primeBase) Repurpose (prime *big.Int) {
 //waters..
 func fillNatProg(p PrimeIF) {
 	p.fillNaturalProgression()
-}
-
-//fillNaturalProgression : prime struct method. The natural progression of
-//the prime's crossings as it moves through the template numbers.
-func (p *primeBase) fillNaturalProgression() {
-	if p == nil {
-		fmt.Println("TODO: determine if methods implementing interfaces should always have nil check.")
-		panic("panicing, don't know what to do about this yet. Would be uncommon.")
-	}
-	/*
-		The point of the primes < 30 is to generate the 29Basis pattern that is repeatedly followed
-		out to infinity. Rather than calculate each crossing individually, this below
-		allows one to calculate the crossings at any Template# and then "roll" out to any
-		other Template#. This also allows looking at any region you like...
-		Natural Progression is, in mod, the crossings from 0 to Prime-1 allowing one to
-		look up the current effect at the current idx (0 to Prime-1).
-
-		This func is used heavily in the Primes <= 29. It is available in Primes >29 but really only useful
-		there for informational purposes. Position finding is done with other methods in primes 31 and greater.
-
-		This starts at the Primes startTNum and increments over all values of the
-		prime (0 to prime.value-1) to calculate the order in which the prime crosses TNum boundaries
-	*/
-	tNum := big.NewInt(0).Set(p.startTemplateNum)
-	for i := 0; i < len(p.naturalProgression); i++ {
-		p.naturalProgression[i] = CrossingAtTNumMod(p.value, tNum)
-		tNum.Add(tNum, big1) //move to next TNumber
-	}
 }
 
 //GetEffect : Given the prime's crossing number return the effect the
@@ -332,26 +351,7 @@ func (prime *PrimeLTE29) ShowDetails(withPausing bool) {
 	prime.ShowRawDetails()
 }
 
-//getNaturalProgressionIdx : internal use only; used only in specific
-//situations for LTE 29's
-func (prime *primeBase) getNaturalProgressionIdx(tNumber *big.Int) int {
-	cNum := CrossingAtTNumMod(prime.value, tNumber)
-	for i := 0; i < int(prime.value.Int64()); i++ {
-		if cNum.Cmp(prime.naturalProgression[i]) == 0 {
-			return i
-		}
-	}
-	return -1
-}
-
-//getCrossingNumber : internal use only and of limited usefulness;
-//used only in showing "raw" details for GTE 31s; from older pascal code
-//could be refactored?
-func (prime *primeBase) getCrossingNumber(naturalProgressionIdx int) *big.Int {
-	return prime.naturalProgression[naturalProgressionIdx]
-}
-
-//GenerateFirst23 : Trivial output, but important as sanity check
+//GeneratePrimes7to23 : Trivial output, but important as sanity check
 //that the routines give back the correct effects; The primes 7 to 23
 //cannot be generated using the general methods I've written, this func
 //prints them out for completeness, but they are not for use in any further
@@ -469,7 +469,7 @@ func GenerateBasis() {
 
 }
 
-//GenerateBasis29Interactive : Interactive func to take user input and generate 29Basis
+//GenerateBasisInteractive : Interactive func to take user input and generate 29Basis
 //files; generally one only needs the "no filter" version, but one is allowed
 //to choose other varieties; recommended to always use default ranges unless
 //you are completely comfortable with juusprimes and filtering

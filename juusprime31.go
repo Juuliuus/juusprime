@@ -376,7 +376,7 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 
 	//20 breaks up progress into approx. 5% chunks, 100 would be 1% chunks
 	displayProgress := DisplayProgressBig(ctrl.From, ctrl.To, 100)
-	//necessary because the range of TNums does not match range of possiblities in 29Basis file
+	//necessary because the range of TNums does not match range of possibilities in 29Basis file
 	displayProgressLastPos := big.NewInt(0).Set(ctrl.From)
 	startTime := DisplayProgressBookend(fmt.Sprintf("Generating prime tuplets between TNums %v & %v (filtered by: %s)",
 		ctrl.From,
@@ -538,7 +538,7 @@ func (prime *PrimeGTE31) showRawDetails() {
 	insertChk := int(inserts.Int64())
 
 	primeInt := int(prime.Prime.value.Int64())
-	cResult := -1
+
 	symbolStr := ""
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 	fmt.Fprintf(w, "%v\t%v\n", "CrossNum", "effect")
@@ -550,7 +550,7 @@ func (prime *PrimeGTE31) showRawDetails() {
 		}
 		spacer++
 		cNum := i % primeInt
-		cResult = prime.getEffect(cNum)
+		cResult := prime.getEffect(cNum)
 		symbolStr = GetSymbolString(cResult, false)
 		if i <= insertChk {
 			symbolStr = cInsertSymbol + " " + symbolStr

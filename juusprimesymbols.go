@@ -66,8 +66,10 @@ const (
 )
 
 var (
+	//map to hold accumulated symbols
 	SymbolCount map[int]int
-	FilterMap   = map[int]uint{
+	//map to hold filtering choices
+	FilterMap = map[int]uint{
 		CSextuplet: filterSextuplet,
 		CLQuint29:  filterLQuint29,
 		CRQuint13:  filterRQuint13,
@@ -198,6 +200,8 @@ func GetFilterDesc(filterType int) string {
 	return "Unknown"
 }
 
+//HelpOutputFiles : func that returns juusprime file information to
+//stdout
 func HelpOutputFiles() {
 	fmt.Println("\njuusprime file information:")
 	fmt.Println("\nfile names:")
@@ -426,7 +430,7 @@ func TNumLastNatNum(tNum *big.Int) *big.Int {
 	return result.Add(result, big29)
 }
 
-//ShowSymbolCounts: Print out the SymbolCount map accumulated results
+//ShowSymbolCounts : Print out the SymbolCount map accumulated results
 func ShowSymbolCounts(from, to *big.Int, filter int, f *os.File) {
 	fmt.Fprintln(f, fmt.Sprintf("\nFinal counts (from TNumber %v to %v)", from, to))
 	fmt.Fprintln(f, fmt.Sprintf("(Natural numbers from %v to %v)", TNumToInt(from), TNumLastNatNum(to)))

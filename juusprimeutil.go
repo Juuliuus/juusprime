@@ -29,10 +29,12 @@ func init() {
 
 var (
 	emptyString = ""
+	//string to hold configuration path to 29basis files
 	Basis29Path string
-	DataPath    string
-	initBypass  = true
-	isInteger   *regexp.Regexp
+	//string to hold configuration path to write tuplet files
+	DataPath   string
+	initBypass = true
+	isInteger  *regexp.Regexp
 )
 
 const (
@@ -330,7 +332,7 @@ func valueClean(toClean, theDefault *string) {
 }
 
 //GetUserInput : Good for basic input, returns the string the User enters.
-//The calling func must deal with type verfication
+//The calling func must deal with type verification
 func GetUserInput(prompt, defaultTo, cancel string) (string, bool) {
 	fmt.Println("")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -409,6 +411,8 @@ func waitForInput() {
 	scanner.Text()
 }
 
+//GetFileInfosFromFolder : a func that gets a list of all files
+//in given path
 func GetFileInfosFromFolder(path string) ([]os.FileInfo, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -423,6 +427,8 @@ func GetFileInfosFromFolder(path string) ([]os.FileInfo, error) {
 	return fileInfos, nil
 }
 
+//Choose29BasisFile : Routine that prepares a list of 29basis files
+//from the Basis29Path and presents them to the user.
 func Choose29BasisFile() (string, bool) {
 
 	fis, err := GetFileInfosFromFolder(Basis29Path)

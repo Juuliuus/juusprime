@@ -11,7 +11,7 @@ import (
 
 //this file is in development, not much here right now
 
-//todo add to calcs, check this! if this only compares 61 to 31 then its
+//GetCritLengthPositive : todo add to calcs, check this! if this only compares 61 to 31 then its
 //kinda useless, need to check the other primes rather, particularly of
 //interest if the next PotPrime is NOT prime, then the crit section defaults
 //to the next PotPrime that is prime.
@@ -31,6 +31,7 @@ func GetCritLengthPositive(prime, n, diff, returnHereLen *big.Int) error {
 	return nil
 }
 
+//GetCritLengthNegative : untested, under development
 func GetCritLengthNegative(prime, n, diff, returnHereLen *big.Int) error {
 	// d( 2p - dc + 2cn ) d, diff; p, prime value; c, 30; n, N for a template number??
 	if diff.Cmp(big1) < 0 {
