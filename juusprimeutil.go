@@ -29,18 +29,20 @@ func init() {
 
 var (
 	emptyString = ""
-	//string to hold configuration path to 29basis files
+	//Basis29Path : string to hold configuration path to 29basis files
 	Basis29Path string
-	//string to hold configuration path to write tuplet files
+	//DataPath : string to hold configuration path to write tuplet files
 	DataPath   string
 	initBypass = true
 	isInteger  *regexp.Regexp
 )
 
 const (
-	trimString     = " \t\r\n"
+	trimString = " \t\r\n"
+	//Basis29PathStr const defining a string for Basis29Path
 	Basis29PathStr = "Basis29Path"
-	DataPathStr    = "DataPath"
+	//DataPathStr const defining a string for DataPath
+	DataPathStr = "DataPath"
 )
 
 const (

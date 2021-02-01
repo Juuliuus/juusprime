@@ -60,7 +60,7 @@ var (
 	currPrecision                                   uint
 	big0, big1, big2, big5, big19                   *big.Int
 	big12, big16, big18, big22, big24, big28, big29 *big.Int
-	//This a constant used a lot in big.Int calcs, it is the length of a Template (30)
+	//TemplateLength : This a constant used a lot in big.Int calcs, it is the length of a Template (30)
 	TemplateLength                 *big.Int
 	basisBegin, basisLen, basisEnd *big.Int
 )

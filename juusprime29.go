@@ -5,15 +5,12 @@ package juusprime
 //author: Julius Schön / R. Spicer, 2021
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
 	"text/tabwriter"
 )
-
-const Basis29Length = 215656441 //(7-29)#, ie.
 
 //Outside of experimentation there is no need for primes other than these in this unit
 var primeLTE29AllowedVals = []int64{7, 11, 13, 17, 19, 23, 29}
@@ -63,7 +60,7 @@ func (p *primeBase) NaturalProgression() []*big.Int {
 //prime's naturalProgression; caller is responsible to keep idx's in range
 func (p *primeBase) NaturalProgressionAtIdx(idx int) (*big.Int, error) {
 	if idx < 0 || idx >= len(p.naturalProgression) {
-		return getBigInt(big0), errors.New(fmt.Sprintf("idx %v out of bounds", idx))
+		return getBigInt(big0), fmt.Errorf("idx %v out of bounds", idx)
 	}
 	return p.naturalProgression[idx], nil
 }

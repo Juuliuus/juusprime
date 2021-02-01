@@ -66,9 +66,9 @@ const (
 )
 
 var (
-	//map to hold accumulated symbols
+	//SymbolCount : map to hold accumulated symbols
 	SymbolCount map[int]int
-	//map to hold filtering choices
+	//FilterMap : map to hold filtering choices
 	FilterMap = map[int]uint{
 		CSextuplet: filterSextuplet,
 		CLQuint29:  filterLQuint29,
