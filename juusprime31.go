@@ -78,6 +78,8 @@ func (prime *PrimeGTE31) String() string {
 //applicable effect; addResult is changed and will be accumulated in the calling
 //function, n is the current n-level (0 based) one is testing.
 func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int) bool {
+	//if the function does not find  that there is an effect at offset & n then it is a
+	//pass and CSextuplet needs to be returned
 	*addResult = CSextuplet
 
 	for i := 0; i < lookUpSize; i++ {

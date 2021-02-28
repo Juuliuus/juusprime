@@ -292,7 +292,10 @@ func GetNfromInt(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 }
 
 //GetCrossNumMod : returns in pointer param the offset (crossing number) for the GTE 31 Prime
-//at level n at the specified given target TNumber
+//at level n at the specified given target TNumber; NOTE - After the release I realized that this
+//function is very poorly named and misleading; It does NOT return a crossing number, it returns
+//the relative offset of givenTNum into the prime's Natural Progression. Renaming the function
+//would require a major version number change because it would break existing code.
 func GetCrossNumMod(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod *big.Int) {
 	//givenTNum - (floor(givenTNum-effectiveTNum / p+30n) (p+30n) ) + effectiveTNum
 	GetEffectiveTNum(n, p, iCalcFuncResult)
