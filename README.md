@@ -6,6 +6,8 @@ February 2021:
 This is the package code for juusprime which is an engine to generate
 Prime Tuplets (Sextuplets and/or Quintuplets and/or Quadruplets). 
 
+Feb. 28, 2021: A pdf file outlining the underlying structure was added.
+
 juusprime is free software, licensed under the GNU GPL, version 3. It
 is written in pure Go, no other dependencies.
 
