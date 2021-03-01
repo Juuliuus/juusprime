@@ -1,12 +1,13 @@
 
 ## juusprime : Prime Tuplet generation written in golang ##
 
-February 2021:
+March 2021:
 
 This is the package code for juusprime which is an engine to generate
 Prime Tuplets (Sextuplets and/or Quintuplets and/or Quadruplets). 
 
-Feb. 28, 2021: A pdf file outlining the underlying structure was added.
+A pdf file is available in the file list that details the underlying
+structures used for the algorithms. A nutshell summary is given below.
 
 juusprime is free software, licensed under the GNU GPL, version 3. It
 is written in pure Go, no other dependencies.
@@ -79,10 +80,11 @@ blocks of numbers: TNumbers (Template Numbers) and Basis Numbers. It
 is recommended to do basis number generation because it is then
 assured that no numbers on the number line are left out by accident.
 
-This will be a an overview, there are many details not covered here.
+This will be a an overview, there are many details not covered
+here. The details are available in the pdf file.
 
 To understand these blocks the Primes are first split into 3 groups, each handled
-separately: primes 2-3-5, primes 7-29, and the "primes" 31-59.
+separately: primes 2-3-5, primes 7-29, and the primes 31-59.
 
 ### Primes 2, 3, & 5 ###
 
@@ -93,7 +95,7 @@ It is very easy to see for yourself, mark a list numbered 1 to 120 and
 cross out every 2nd, 3rd, and fifth multiple; i.e., a sieve using only
 2,3,5.
 
-You will then clearly see at position 25 that a repeating pattern 30
+You will then clearly see at number line position 25 a repeating pattern 30
 numbers long that shows the sextuplet sitting untouched on the right
 of the tempalte and a twin prime on the left. In this project I focus
 only on the sextuplet structure, the "rogue" twin on the left is
@@ -197,9 +199,9 @@ actually are: potential primes (potPrimes). Here's why.
 
 We now construct similar cycles for these primes just as we did for
 the 7-29 primes. It turns out to be a much simpler process and they
-expect regular behaviors, patterns.
+exhibit regular behaviors and patterns.
 
-So it also turns out that the potPrimes are very amenable to equations
+It also turns out that the potPrimes are very amenable to equations
 that can be used to "look up" their effects at any TNumber. They are
 regularly irregular or irregularly regular, can't decide which is
 better.
@@ -218,11 +220,16 @@ out of potPrimes...
 This is where the potPrimes are regularly irregular. It turns out that
 61, the 9th pot prime (n=1), has exactly the same structure as 31 with
 the exception that its length is 30 greater. 91, n-2, has length 60
-greater...
+greater ... this results in the potPrimes expanding as you move from
+member to member.
 
-To handle that all one has to do is to "expand" the look up tables
-(like the Universe expands). The look up tables, btw, are constants
-and must be figured out with pen and paper.
+Each potPrime has a lookup table derived from its natural progression
+through the prime templates. And the lookup table is expanded by n
+which exactly matches the expansion as one moves through members of a
+potPrime family.
+
+These look up tables, btw, are constants for each potPrime and can be
+figured out with pen and paper from the potPrimes natural progression..
 
 And so the proper definition of a PotPrime, P, is: 
 P = Pvalue + 30n
@@ -235,7 +242,7 @@ For n's = 0,1,2 and potPrimes 31, 49
 
 Since we're checking by blocks, and using simple fast calculations to
 do look ups and using "Tuplet math", the entire thing is fast and
-relatively simple.
+relatively simple for reasonable n's.
 
 We are checking non-prime potPrimes, yes, but that means we leave
 nothing out by accident. It's the best scenario I have right now,
