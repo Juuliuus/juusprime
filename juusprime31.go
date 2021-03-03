@@ -395,6 +395,11 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 	fmt.Fprintln(prettyF, fmt.Sprintf("29Basis file used: %s", rawData.Name()))
 	fmt.Fprintln(prettyF, fmt.Sprintf("filtered by: %v", GetFilterDesc(ctrl.FilterType)))
 
+	//add vars for testing for twin sextuplets
+	twinCheck := big.NewInt(0)
+	big7 := big.NewInt(7)
+	twinCheckStr := ""
+
 	//main loop
 	for {
 		if !doScan(tTarget, &inResult) {
@@ -473,6 +478,23 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 			continue
 		}
 
+		//twin sextuplet check for TNum to be 7 difference
+		if inResult == CSextuplet {
+			iCalcA.Sub(tTarget, twinCheck)
+			/*
+				if true {
+					_ = big7
+					fmt.Println("Twin Sextuplets found, TNumbers:", twinCheck, tTarget, iCalcA)
+					twinCheckStr = twinCheckStr + fmt.Sprintf("\n%v %v %v", twinCheck, tTarget, iCalcA)
+				}
+			*/
+			if iCalcA.Cmp(big7) == 0 {
+				fmt.Println("Twin Sextuplets found, TNumbers:", twinCheck, tTarget)
+				twinCheckStr = twinCheckStr + fmt.Sprintf("\n%v %v", twinCheck, tTarget)
+			}
+			twinCheck.Set(tTarget)
+		}
+
 		fmt.Fprintln(rawF, tTarget)
 		fmt.Fprintln(rawF, inResult)
 		HumanReadable(tTarget, &inResult, &basis29TNumberStr, &basisNotification, prettyF)
@@ -493,12 +515,14 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 	defer FileClose(infoF)
 
 	ShowSymbolCounts(ctrl.From, ctrl.To, ctrl.FilterType, infoF)
+	ShowTwinSextupletResults(&twinCheckStr, infoF)
 	fmt.Fprintln(infoF, fmt.Sprintf("29Basis file used: %s", rawData.Name()))
 	fmt.Fprintln(infoF, cInfoDataFormat)
 	fmt.Fprintln(infoF, cInfoSymbols)
 	ShowSymbolFileDesignations(infoF)
 
 	ShowSymbolCounts(ctrl.From, ctrl.To, ctrl.FilterType, os.Stdout)
+	ShowTwinSextupletResults(&twinCheckStr, os.Stdout)
 	fmt.Println("")
 	fmt.Println(fmt.Sprintf("The files:\n%s\n%s\n%s\nhave been generated.", rawF.Name(), prettyF.Name(), infoF.Name()))
 }

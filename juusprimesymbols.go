@@ -451,6 +451,15 @@ func ShowSymbolCounts(from, to *big.Int, filter int, f *os.File) {
 	//fmt.Println(SymbolCount)
 }
 
+//ShowSymbolCounts : Print out the SymbolCount map accumulated results
+func ShowTwinSextupletResults(twins *string, f *os.File) {
+	if *twins != "" {
+		fmt.Fprintln(f, "\nTwin Sextuplets were found, listed by TNumber:")
+		fmt.Fprintln(f, *twins)
+		fmt.Fprintln(f, "")
+	}
+}
+
 //ShowSymbolFileDesignations : a routine that assembles the pieces that are
 //printed to the info file so people can understand the symbol strings in file names
 func ShowSymbolFileDesignations(f *os.File) {
