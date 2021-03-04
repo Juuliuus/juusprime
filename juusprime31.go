@@ -27,6 +27,19 @@ type primeGT30Lookup struct {
 	Effect []int
 }
 
+//PrimeHelper struct : holds variables that don't belong properly to a
+//prime's properties, but that can be useful in calculations, looping, etc.
+type PrimeHelper struct {
+	//can use this to control "n" looping
+	MaxN *big.Int
+}
+
+func getPrimeHelper() *PrimeHelper {
+	return &PrimeHelper{
+		MaxN: big.NewInt(0),
+	}
+}
+
 //Stringer for lookups
 func (lu *primeGT30Lookup) String() string {
 	result := ""
@@ -41,6 +54,7 @@ func (lu *primeGT30Lookup) String() string {
 //53, and 59; there are no need for others since these can do the checking
 //for sextuplets via lookups all the way out to infinity + 1
 type PrimeGTE31 struct {
+	Helper *PrimeHelper
 	Prime  *primeBase
 	LookUp *primeGT30Lookup
 	//only used in displaying, for humans, the details of the GTE 31 prime
@@ -59,6 +73,7 @@ func NewPrimeGTE31(prime *big.Int) *PrimeGTE31 {
 	}
 
 	r := &PrimeGTE31{
+		Helper: getPrimeHelper(),
 		Prime:  getPrimeBase(prime),
 		LookUp: getPrimeGT30Lookup(prime),
 	}
