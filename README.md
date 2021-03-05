@@ -9,6 +9,11 @@ Prime Tuplets (Sextuplets and/or Quintuplets and/or Quadruplets).
 A pdf file is available in the file list that details the underlying
 structures used for the algorithms. A nutshell summary is given below.
 
+New as of 5 March 2021 (v1.0.1):
+- add twin sextuplet check during Tuplet generation
+- add automation routines for use through shell scripts, etc.
+- Add initial Helper structure to hold useful runtime vars.
+
 juusprime is free software, licensed under the GNU GPL, version 3. It
 is written in pure Go, no other dependencies.
 
@@ -402,5 +407,10 @@ any problems.
 
 -------------------------------------------------------------------------------
 ### History ###
+
+v1.0.1 March 5, 2021
+- add twin sextuplet check during Tuplet generation
+- add automation routines for use through shell scripts, etc.
+- Add initial Helper structure to hold useful runtime vars.
 
 v1.0.0 February 2021

@@ -14,7 +14,10 @@ import (
 
 const lookUpSize = 6 //6 locations where Tuplets can be changed or destroyed
 
-var primeGTE31AllowedVals = []int64{31, 37, 41, 43, 47, 49, 53, 59}
+var (
+	primeGTE31AllowedVals = []int64{31, 37, 41, 43, 47, 49, 53, 59}
+	isAutomated           = false
+)
 
 //primeGT30Lookup : Used to keep track of the lookup data for the
 //primes greater than or equal to 31
@@ -299,7 +302,7 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 		fmt.Println("Basis can not be less than 0, ie., 0 for the first basis, 1 for the 2nd and so on.")
 		return
 	}
-	if FileExists(outputFileName) {
+	if !isAutomated && FileExists(outputFileName) {
 		if approved := GetUserConfirmation(fmt.Sprintf("ATTENTION, File: \n%v\nalready exists. Do you want to overwrite it?", outputFileName), "y"); !approved {
 			return
 		}
@@ -540,6 +543,87 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 	ShowTwinSextupletResults(&twinCheckStr, os.Stdout)
 	fmt.Println("")
 	fmt.Println(fmt.Sprintf("The files:\n%s\n%s\n%s\nhave been generated.", rawF.Name(), prettyF.Name(), infoF.Name()))
+}
+
+//AutomationStruct : used to pass automation params into
+//automation routines
+type AutomationStruct struct {
+	BasisFile, OutputPath    string
+	FromBasisNum, ToBasisNum string
+	Filter                   int
+	//Overwrite                bool
+}
+
+//GetNewAutomationStructure : return a pointer to an AutomationStruct
+func GetNewAutomationStructure() *AutomationStruct {
+	return &AutomationStruct{
+		BasisFile:    "",
+		OutputPath:   "",
+		Filter:       1,
+		FromBasisNum: "0",
+		ToBasisNum:   "0",
+		//Overwrite:    false,
+	}
+}
+
+//GeneratePrimeTupletsAutomated : For use with automation through code or
+//shell scripts, etc. Pass in a filled automation structure.
+func GeneratePrimeTupletsAutomated(auto *AutomationStruct) int {
+
+	if !FileExists(auto.BasisFile) {
+		fmt.Println(fmt.Sprintf("Automation: Path '%s' to 29basis rawdata is invalid.", auto.BasisFile))
+		return 1
+	}
+
+	if !FileExists(auto.OutputPath) {
+		fmt.Println(fmt.Sprintf("Automation: Output Path '%s' is invalid.", auto.OutputPath))
+		return 1
+	}
+
+	locFrom := big.NewInt(-1)
+	locTo := big.NewInt(-2)
+
+	fmt.Sscan(auto.FromBasisNum, locFrom)
+	if locFrom.Cmp(big0) == -1 {
+		fmt.Println(fmt.Sprintf("Automation: From Basis Num '%v' must >= 0.", locFrom))
+		return 1
+	}
+
+	fmt.Sscan(auto.ToBasisNum, locTo)
+	if locTo.Cmp(locFrom) == -1 {
+		fmt.Println(fmt.Sprintf("Automation: To Basis Num '%v' must greater than or eqaul to From Basis Num '%v'.", locTo, locFrom))
+		return 1
+	}
+
+	if auto.Filter >= ftCount {
+		fmt.Println(fmt.Sprintf("Automation: Filter choice '%v' is invalid.", auto.Filter))
+		return 1
+	}
+
+	isAutomated = true
+	// TODO: Overwriting!!! a bit painful, must call prepare repeatedly....
+	//	outputFileName := ctrl.Prepare()
+	//	if !auto.Overwrite {
+	//	}
+
+	ctrl := NewGenPrimesStruct()
+
+	ctrl.FullPathto29RawFile = auto.BasisFile
+	ctrl.OpMode = omBasis
+	ctrl.FilterType = auto.Filter
+	ctrl.DefaultPath = auto.OutputPath
+
+	for locFrom.Cmp(locTo) < 1 {
+		ctrl.BasisNum.Set(locFrom)
+		fmt.Println("")
+		fmt.Println("=============================")
+		fmt.Println(fmt.Sprintf("--- Processing basis-%v ---", locFrom))
+		fmt.Println("=============================")
+		fmt.Println("")
+		GeneratePrimeTuplets(ctrl)
+		locFrom.Add(locFrom, big1)
+	}
+	return 0
 }
 
 //ShowDetails : print to screen all the GTE 31 details
