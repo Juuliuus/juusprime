@@ -115,6 +115,18 @@ func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int)
 	return false
 }
 
+//displayResultsAtCrossNum : Internal use testing/debugging
+func (prime *PrimeGTE31) displayResultsAtCrossNum(n *big.Int) string {
+	result := ""
+	for i := 0; i < lookUpSize; i++ {
+		iCalcA.Mul(n, prime.LookUp.Q[i])
+		iCalcA.Add(iCalcA, prime.LookUp.C[i])
+		result = result + fmt.Sprintf("n:%v  C=%v Q=%v Calc=%v    E=%v\n",
+			n, prime.LookUp.C[i], prime.LookUp.Q[i], iCalcA, prime.LookUp.Effect[i])
+	}
+	return result
+}
+
 //HumanReadable : Output to f a neatly packaged human readable format
 //of the found Tuplet's details; Using this one can translate a .rawdata
 //file by sending in the Tnumber and the effect integer, tNum29 is the

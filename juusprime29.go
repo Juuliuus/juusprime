@@ -56,7 +56,18 @@ func (p *primeBase) NaturalProgression() []*big.Int {
 	return p.naturalProgression
 }
 
-//NaturalProgressionAtIdx : Getter for a an individual value of a
+//NaturalProgressionAtIndex : Getter for a an individual value of a
+//prime's naturalProgression; caller is responsible to keep idx's in range
+func (p *primeBase) NaturalProgressionAtIndex(idx int, returnMe *big.Int) error {
+	if idx < 0 || idx >= len(p.naturalProgression) {
+		returnMe.Set(big0)
+		return nil
+	}
+	returnMe.Set(p.naturalProgression[idx])
+	return nil
+}
+
+//NaturalProgressionAtIdx : Deprecated, use NaturalProgressionAtIndex; Getter for a an individual value of a
 //prime's naturalProgression; caller is responsible to keep idx's in range
 func (p *primeBase) NaturalProgressionAtIdx(idx int) (*big.Int, error) {
 	if idx < 0 || idx >= len(p.naturalProgression) {
@@ -93,9 +104,9 @@ func (p *primeBase) fillNaturalProgression() {
 	}
 }
 
-//getNaturalProgressionIdx : internal use only; used only in specific
+//GetNaturalProgressionIdx : internal use only; used only in specific
 //situations for LTE 29's
-func (p *primeBase) getNaturalProgressionIdx(tNumber *big.Int) int {
+func (p *primeBase) GetNaturalProgressionIdx(tNumber *big.Int) int {
 	cNum := CrossingAtTNumMod(p.value, tNumber)
 	for i := 0; i < int(p.value.Int64()); i++ {
 		if cNum.Cmp(p.naturalProgression[i]) == 0 {
@@ -117,12 +128,12 @@ func (p *primeBase) getCrossingNumber(naturalProgressionIdx int) *big.Int {
 //possible prime sextuplets (the 29Basis)
 type PrimeLTE29 struct {
 	Prime          *primeBase
-	crossNumEffect map[*big.Int]int
+	CrossNumEffect map[*big.Int]int
 }
 
 //Stringer for PrimeLTE29
 func (prime *PrimeLTE29) String() string {
-	return fmt.Sprintf("%v", prime.Prime) + "crossNumEffect:\n" + fmt.Sprint(prime.crossNumEffect) + "\n"
+	return fmt.Sprintf("%v", prime.Prime) + "crossNumEffect:\n" + fmt.Sprint(prime.CrossNumEffect) + "\n"
 }
 
 //checkPrimeValues : internal function to control allowed values
@@ -174,7 +185,7 @@ func NewPrimeLTE29(prime *big.Int) *PrimeLTE29 {
 
 	r := &PrimeLTE29{
 		Prime:          getPrimeBase(prime),
-		crossNumEffect: make(map[*big.Int]int),
+		CrossNumEffect: make(map[*big.Int]int),
 	}
 	r.fillEffectsMap()
 	return r
@@ -184,7 +195,7 @@ func NewPrimeLTE29(prime *big.Int) *PrimeLTE29 {
 //at a crossing number more intuitive
 func (prime *PrimeLTE29) fillEffectsMap() {
 	for i := 0; i < len(prime.Prime.naturalProgression); i++ {
-		prime.crossNumEffect[prime.Prime.naturalProgression[i]] = prime.GetEffect(prime.Prime.naturalProgression[i])
+		prime.CrossNumEffect[prime.Prime.naturalProgression[i]] = prime.GetEffect(prime.Prime.naturalProgression[i])
 	}
 }
 
@@ -396,7 +407,7 @@ func GeneratePrimes7to23() {
 		return func(comp *big.Int) {
 			if comp.Cmp(prime.Prime.startTemplateNum) >= 0 {
 				//get prime's crossing number at this TNumber and add its effect'
-				effectPtr = prime.crossNumEffect[prime.Prime.naturalProgression[cs.idx]]
+				effectPtr = prime.CrossNumEffect[prime.Prime.naturalProgression[cs.idx]]
 				cs.idx = (cs.idx + 1) % cs.size //increment but keep it in mod range of 0..6 for 7, 0..10 for 11, etc.
 				addResult = AddSymbols(&addResult, &effectPtr)
 			}
@@ -602,7 +613,7 @@ func GenerateBasis29(ctrl *GenPrimesStruct, f *os.File) {
 		result := &controlStruct{
 			//in order to bail out (continue) if effect is "X" (ie, possibility killed/destroyed) then
 			//Need to increment at TOP of the loop, hence the " - 1";
-			idx:  prime.Prime.getNaturalProgressionIdx(ctrl.From) - 1,
+			idx:  prime.Prime.GetNaturalProgressionIdx(ctrl.From) - 1,
 			size: int(prime.Prime.value.Int64()),
 			p:    prime,
 		}
@@ -618,7 +629,7 @@ func GenerateBasis29(ctrl *GenPrimesStruct, f *os.File) {
 
 	adder := func(cs *controlStruct) func() bool {
 		return func() bool {
-			effectPtr = cs.p.crossNumEffect[cs.p.Prime.naturalProgression[cs.idx]]
+			effectPtr = cs.p.CrossNumEffect[cs.p.Prime.naturalProgression[cs.idx]]
 			addResult = AddSymbols(&addResult, &effectPtr)
 			return FilterMap[addResult]&adderFilter == 0
 		}
