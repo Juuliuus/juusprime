@@ -29,6 +29,10 @@ type primeBase struct {
 	valueSquared       *big.Int
 	startTemplateNum   *big.Int
 	naturalProgression []*big.Int
+	//These were added to allow regular arithmetic mod function for PrimesGTE31
+	//to get Mod Crossings (see GetCrossNumModDirect). These are constants
+	//of each potPrime 31 and greater and are calculated, used to "unwind" TNumber offsets
+	mod30, modConst, modOffset *big.Int
 }
 
 //Stringer for primeBase
@@ -167,6 +171,9 @@ func getPrimeBase(prime *big.Int) *primeBase {
 		value:              getBigInt(prime),
 		valueSquared:       big.NewInt(0).Mul(prime, prime),
 		naturalProgression: make([]*big.Int, prime.Int64()),
+		mod30:              big.NewInt(0),
+		modConst:           big.NewInt(0),
+		modOffset:          big.NewInt(0),
 	}
 	r.startTemplateNum = IntToTNum(getBigInt(r.valueSquared))
 	//r.fillNaturalProgression()

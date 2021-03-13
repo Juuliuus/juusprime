@@ -169,108 +169,82 @@ func TestFindingN(t *testing.T) {
 
 }
 
-/*
-some interface help for later...
+//TestCritLengthRoutines : tests that the crit length routines return
+//the same results that a manual subtraction of effective TNumbers produces,
+//for use within a PotPrime family
+func TestCritLengthRoutines(t *testing.T) {
+	fmt.Println("testing crit length routines...")
+	//use the getcritlength functions to calculate all lengths between
+	//fixed N and the n's represented by diff. Check the calculation is correct
+	//using manual subtaction of corresponding effective TNumbers.
+	//iter controls the looping, first we loop from 0 to N-1, then reverse the
+	//looping from N-1 to 0
 
-shopModel is the interface requiring the two methods to be implemented.
-// Swap this to use the ShopModel interface type as the parameter, instead of the
-// concrete *ShopDB type.
-func calculateSalesRate(sm ShopModel) (string, error) {
-	since := time.Now().Add(-24 * time.Hour)
+	iter := big.NewInt(25)
+	var potprime *PrimeGTE31
 
-	sales, err := sm.CountSales(since)
-	if err != nil {
-		return "", err
+	N := big.NewInt(0)
+	nctrl := big.NewInt(-1)
+	diff := big.NewInt(1)
+	effective := big.NewInt(0)
+	test := big.NewInt(0)
+	current := big.NewInt(0)
+	res := big.NewInt(0)
+	cmp := big.NewInt(0)
+
+	potprimes := []int64{31, 37, 41, 43, 47, 49, 53, 59}
+
+	for p := range potprimes {
+		potprime = NewPrimeGTE31(big.NewInt(potprimes[p]))
+
+		N.SetInt64(0)
+		GetEffectiveTNum(N, potprime, current)
+		nctrl.SetInt64(0)
+
+		for nctrl.Cmp(iter) < 1 {
+			nctrl.Add(nctrl, big1)
+			diff.Sub(N, nctrl)
+			diff.Abs(diff)
+			GetCritLengthPositiveWF(potprime.Prime.Value(), N, diff, res)
+
+			GetEffectiveTNum(nctrl, potprime, effective)
+			test.Sub(effective, current)
+			//fmt.Println(res, test, effective)
+			if test.Cmp(res) != 0 {
+				t.Errorf("CritLengthPos error, Wanted %v, got %v", res, test)
+			}
+
+		}
+
+		//fmt.Println("-------------")
+
+		//We need to go the next N so that it backtraces
+		//perfectly the ascending series we just did.
+		N.Add(iter, big1)
+
+		nctrl.Set(N)
+		GetEffectiveTNum(N, potprime, current)
+
+		cmp.Sub(N, iter)
+		for nctrl.Cmp(cmp) > -1 {
+			nctrl.Sub(nctrl, big1)
+			if nctrl.Cmp(big0) == -1 {
+				//this will never happen in this function because it
+				//is controlled. This here if someone copies this code for
+				//general use, this break would be important.
+				break
+			}
+			diff.Sub(N, nctrl)
+			diff.Abs(diff)
+			GetCritLengthNegativeWF(potprime.Prime.Value(), N, diff, res)
+
+			GetEffectiveTNum(nctrl, potprime, effective)
+			test.Sub(current, effective)
+			//fmt.Println(res, test, current)
+			if test.Cmp(res) != 0 {
+				t.Errorf("CritLengthNeg error, Wanted %v, got %v", res, test)
+			}
+
+		}
 	}
-
-	customers, err := sm.CountCustomers(since)
-	if err != nil {
-		return "", err
-	}
-
-	rate := float64(sales) / float64(customers)
-	return fmt.Sprintf("%.2f", rate), nil
 }
-
-// File: main_test.go
-package main
-
-import (
-    "testing"
-    "time"
-)
-
-type MockShopDB struct{}
-
-func (m *MockShopDB) CountCustomers(_ time.Time) (int, error) {
-    return 1000, nil
-}
-
-func (m *MockShopDB) CountSales(_ time.Time) (int, error) {
-    return 333, nil
-}
-
-func TestCalculateSalesRate(t *testing.T) {
-    // Initialize the mock.
-    m := &MockShopDB{}
-    // Pass the mock to the calculateSalesRate() function.
-    sr, err := calculateSalesRate(m)
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    // Check that the return value is as expected, based on the mocked
-    // inputs.
-    exp := "0.33"
-    if sr != exp {
-        t.Fatalf("got %v; expected %v", sr, exp)
-    }
-}
-
-
-
-Or to put it in a more plain-English way, the empty interface type interface{} is kind of like a wildcard. Wherever you see it in a declaration (such as a variable, function parameter or struct field) you can use an object of any type.
-
-
-Take a look at the following code:
-
-package main
-
-import "fmt"
-
-
-func main() {
-    person := make(map[string]interface{}, 0)
-
-    person["name"] = "Alice"
-    person["age"] = 21
-    person["height"] = 167.64
-
-    fmt.Printf("%+v", person)
-}
-
-but, gotcha on manipulating the values....
-
-package main
-
-import "log"
-
-func main() {
-    person := make(map[string]interface{}, 0)
-
-    person["name"] = "Alice"
-    person["age"] = 21
-    person["height"] = 167.64
-
-    age, ok := person["age"].(int)
-    if !ok {
-        log.Fatal("could not assert value to int")
-        return
-    }
-
-    person["age"] = age + 1
-
-    log.Printf("%+v", person)
-}
-
-*/

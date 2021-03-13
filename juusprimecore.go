@@ -183,9 +183,8 @@ func GetEffectiveTNum(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) {
 // see note in GetEffectiveTNum
 func GetEffectiveTNumSimple(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) {
 	//  result := IntToTNum( (p.value + 30n)^2 )
-	iCalcA.Mul(TemplateLength, n)
-	iCalcA.Add(p.Prime.value, iCalcA)
-	returnHereTNum.Set(IntToTNum(iCalcA.Mul(iCalcA, iCalcA)))
+	p.MemberAtN(n, iCalcFuncResult)
+	returnHereTNum.Set(IntToTNum(iCalcFuncResult.Mul(iCalcFuncResult, iCalcFuncResult)))
 }
 
 //GetNfromTNumComplicated : Given a TNum & PrimeGTE31 return the the n value,
@@ -291,6 +290,43 @@ func GetNfromInt(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 	GetNfromTNum(IntToTNum(rNum), p, returnedHereN)
 }
 
+//GetCrossNumModDirect : An alternative to GetCrossNumMod original,
+//it uses a direct "mod" operation which then adjusts back to TNumbers crossing,
+//basically "unwrapping" the expansions; result is
+//returned in parameter; A bit less calculation and requires no floor function
+//since effectiveTNum is not required.
+func GetCrossNumModDirect(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod *big.Int) {
+	//R is p.value mod 30, ie. 1, 7, 11, 13, 17, 19, 23, or 29
+	//givenTNum mod (p+30n) - ((n+1)R) - K
+	//
+	//K is constant for each potPrime = 0, 1, 4, 5, 9, 12, 17, 28
+	//K is calculated from p's offset into its starting TNumber + C - p.value
+
+	// get p+30n into iCalcC
+	p.MemberAtN(n, iCalcC)
+	//fmt.Println(iCalcC, iCalcFuncResult)
+
+	// givenTNum mod (p+30n) into iCalcA
+	iCalcA.Mod(givenTNum, iCalcC)
+
+	// n+1 into iCalcB
+	iCalcB.Add(n, big1)
+	// (n+1)R
+	iCalcB.Mul(iCalcB, p.Prime.mod30)
+
+	//givenTNum mod (p+30n) - ((n+1)R)
+	iCalcA.Sub(iCalcA, iCalcB)
+
+	//subtract K
+	returnHereCrossNumMod.Sub(iCalcA, p.Prime.modConst)
+	//returnHereCrossNumMod.Sub(iCalcA, iCalcB)
+	//if answer is negative then it is the complementary portion of pP
+	if returnHereCrossNumMod.Cmp(big0) == -1 {
+		returnHereCrossNumMod.Add(returnHereCrossNumMod, iCalcC)
+	}
+
+}
+
 //GetCrossNumMod : returns in pointer param the offset (crossing number) for the GTE 31 Prime
 //at level n at the specified given target TNumber; NOTE - After the release I realized that this
 //function is very poorly named and misleading; It does NOT return a crossing number, it returns
@@ -300,7 +336,7 @@ func GetCrossNumMod(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod 
 	//givenTNum - (floor(givenTNum-effectiveTNum / p+30n) (p+30n) ) + effectiveTNum
 	GetEffectiveTNum(n, p, iCalcFuncResult)
 
-	//PotentialPrime := p + ( cTemplateLength * n ) [p+30n]
+	//PotentialPrime := p + ( cTemplateLength * n ) [i.e. p+30n]
 	iCalcC.Mul(TemplateLength, n)
 	iCalcC.Add(p.Prime.value, iCalcC)
 
@@ -374,28 +410,28 @@ func getBigInt(initTo *big.Int) *big.Int {
 //ShowMe : testing and internal use, good to use
 //when you want to see unexported variable results without a lot
 //of bother
-func ShowMe() {
-	fmt.Println("Showing the very large N from a very large TNum")
+func ShowMe(choice int, p *PrimeGTE31, b *big.Int) error {
 
-	b := big.NewInt(0)
-	tTo := big.NewInt(0)
-	tFrom := big.NewInt(0)
-	fmt.Sscan("86000000000", b)
+	switch choice {
+	case 1:
+		if p == nil {
+			err := fmt.Errorf("ShowMe: Bad prime sent in")
+			return err
+		}
+		if b == nil {
+			err := fmt.Errorf("ShowMe: Invalid N")
+			return err
+		}
+		if b.Cmp(big1) == -1 {
+			err := fmt.Errorf("ShowMe: N level must be greater or equal to 1")
+			return err
+		}
+		displayFullCritLengths(p, b)
+	default:
+		fmt.Println("ShowMe: bad choice sent in.")
 
-	//from 18546453926001000028
-	//to   18546453926002000028
-	BasisToTNumRange(b, tFrom, tTo)
-	fmt.Println(tFrom, tTo)
-	return
-
-	temp := big.NewInt(9)
-	//b := big.NewInt(0)
-	p31 := NewPrimeGTE31(big.NewInt(31))
-	//fmt.Sscan("18446744073709551616", from)
-	//fmt.Sscan("369810586642731238200846267246013687737173843265755557648570001", from)
-	GetNfromTNum(tTo, p31, temp)
-	fmt.Println(tTo, "\n", temp)
-	//fmt.Print("ShowMe is empty right now")
+	}
+	return nil
 }
 
 /*

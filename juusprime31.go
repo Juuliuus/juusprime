@@ -115,6 +115,13 @@ func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int)
 	return false
 }
 
+//MemberAtN : return the member of the potPrime family at
+//n; e.g. family 31, n=0 return 31, n=1 return 61, n=2 return 91, etc.
+func (p *PrimeGTE31) MemberAtN(n, returnMember *big.Int) {
+	returnMember.Mul(n, TemplateLength)
+	returnMember.Add(returnMember, p.Prime.Value())
+}
+
 //displayResultsAtCrossNum : Internal use testing/debugging
 func (prime *PrimeGTE31) displayResultsAtCrossNum(n *big.Int) string {
 	result := ""
@@ -851,9 +858,23 @@ func (prime *PrimeGTE31) getEffect(crossingNum int) int {
 }
 
 //InitGTE31 : fill in the appropriate data for the particular GTE 31 prime; in essence
-//these are "constants" associated with that GTE 31 prime, they are calculated with
+//these are "constants" associated with that GTE 31 prime, they can be calculated with
 //pen and paper
 func InitGTE31(prime *PrimeGTE31) {
+	//constants before the switch are used to unwind effects of
+	//TNumber mod arithmetic to normal mod arithmetic
+
+	//store the pP mod 30 value for normal arithmetic mod routines, 1 for 31, 7 for 37, etc.
+	prime.Prime.mod30.Mod(prime.Prime.value, TemplateLength)
+
+	//get the primes offset into its own Starting Template
+	prime.Prime.modOffset.Mod(prime.Prime.startTemplateNum, prime.Prime.value)
+
+	//constant that reflects the initial Template offsets
+	//C + modOffset - prime's value
+	prime.Prime.modConst.Add(TemplateLength, prime.Prime.modOffset)
+	prime.Prime.modConst.Sub(prime.Prime.modConst, prime.Prime.value)
+
 	switch prime.Prime.value.Int64() {
 	case 31:
 		prime.hasInsertBefore0 = false
