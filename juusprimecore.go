@@ -331,7 +331,9 @@ func GetCrossNumModDirect(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossN
 //at level n at the specified given target TNumber; NOTE - After the release I realized that this
 //function is very poorly named and misleading; It does NOT return a crossing number, it returns
 //the relative offset of givenTNum into the prime's Natural Progression. Renaming the function
-//would require a major version number change because it would break existing code.
+//would require a major version number change because it would break existing code; this is the
+//original CrossNumMod function built using TNumber mod algorithms;
+//also see the newer GetCrossNumModDirect func which is simpler and faster
 func GetCrossNumMod(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod *big.Int) {
 	//givenTNum - (floor(givenTNum-effectiveTNum / p+30n) (p+30n) ) + effectiveTNum
 	GetEffectiveTNum(n, p, iCalcFuncResult)

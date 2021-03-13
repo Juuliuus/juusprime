@@ -378,7 +378,8 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 		//is not prime, one would do that here. I've tried various schemes
 		//already and all they do is slow down the process
 		if tTarget.Cmp(prime.Prime.startTemplateNum) > -1 && curN.Cmp(finalN) < 1 {
-			GetCrossNumMod(tTarget, curN, prime, toTest)
+			//original func, slower GetCrossNumMod(tTarget, curN, prime, toTest)
+			GetCrossNumModDirect(tTarget, curN, prime, toTest)
 			//this test uses the primes lookups, calcs there will be at least 1, at most 6, so its quick(ish)
 			if prime.GetResultAtCrossNum(&addResult, toTest, curN) {
 				inResult = AddSymbols(&inResult, &addResult)
