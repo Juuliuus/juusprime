@@ -37,7 +37,7 @@ type primeBase struct {
 
 //Stringer for primeBase
 func (p *primeBase) String() string {
-	return fmt.Sprintf("P=%v\nP^2=%v\nT#=%v\nT expanded=%v\n%v\n", p.value, p.valueSquared, p.startTemplateNum, TNumToInt(p.startTemplateNum), p.naturalProgression)
+	return fmt.Sprintf("P=%v\nP^2=%v\nT#=%v\nT expanded=%v\nmod30=%v\nmodConst=%v\nmodOffset=%v\n%v\n", p.value, p.valueSquared, p.startTemplateNum, TNumToInt(p.startTemplateNum), p.mod30, p.modConst, p.modOffset, p.naturalProgression)
 }
 
 //Value : Getter for a prime's value
