@@ -2,7 +2,6 @@ package juusprime
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -15,98 +14,57 @@ import (
 //GNU GPL3
 //author: Julius Schön / R. Spicer, 2021
 
-//this file is in development, not much here right now
-
-//GetCritLengthPositiveWF : WF=witthin family, given N (a chosen, fixed n level),
-//and diff (the difference between N and your desired n), calculate the number of
-//Templates between them in positive direction, ie. toward infinity; prime is the
-//potPrime base value (31, 37,...), result is returned in last parameter
-func GetCritLengthPositiveWF(p *PrimeGTE31, N, diff, returnHereLen *big.Int) error {
-	// d( 2p + dc + 2cN ) d, diff; p, prime value; c=30; N a fixed chosen "n"
+//GetCritLength : given fixedN (a chosen, fixed n level),
+//and n the n-level you want to compare to, calculate the number of
+//Templates between them; prime is a *PrimeGTE31, and
+//abs flag is whether to return the absolute value; result is returned in last parameter
+func GetCritLength(abs bool, p *PrimeGTE31, fixedN, n, returnHereLen *big.Int) error {
+	// d( 2p + cd + 2cN ) d, diff; p, prime value; c=30; N a fixed chosen "n"
 	returnHereLen.SetInt64(0)
-	if diff.Cmp(big1) < 0 {
-		return errors.New("GetCritLengthPositive: difference (diff) parameter must be greater than or equal to 1")
+	if n.Cmp(big0) < 0 {
+		return fmt.Errorf("GetCritLength: target n (%v) must be GTE 0", n)
 	}
+
+	//d
+	iCalcD.Sub(n, fixedN)
+
+	//2p
 	iCalcA.Mul(p.Prime.value, big2)
 
-	iCalcB.Mul(diff, TemplateLength)
+	//cd
+	iCalcB.Mul(iCalcD, TemplateLength)
 
-	iCalcC.Mul(N, TemplateLength)
+	//2cN
+	iCalcC.Mul(fixedN, TemplateLength)
 	iCalcC.Mul(iCalcC, big2)
 
+	//sum
 	iCalcA.Add(iCalcA, iCalcB)
 	iCalcA.Add(iCalcA, iCalcC)
 
-	returnHereLen.Mul(diff, iCalcA)
+	//d(sum)
+	returnHereLen.Mul(iCalcD, iCalcA)
+	if abs {
+		returnHereLen.Abs(returnHereLen)
+	}
 	return nil
 }
 
-//GetCritLengthNegativeWF : WF=witthin family, given N (a chosen, fixed n level),
-//and diff (the difference between N and your desired n), calculate the number of
-//Templates between them in negative direction, ie. toward zero; prime is the
-//potPrime base value (31, 37,...), result is returned in last parameter
-func GetCritLengthNegativeWF(p *PrimeGTE31, N, diff, returnHereLen *big.Int) error {
-	// d( 2p - dc + 2cN ) d, diff; p, prime value; c= 30; N a fixed chosen "n"
-	returnHereLen.SetInt64(0)
-	if diff.Cmp(big1) < 0 {
-		return errors.New("GetCritLengthNegative: difference parameter (diff) must be greater than or equal to 1")
-	}
-	iCalcD.Sub(N, diff)
-	if iCalcD.Cmp(big0) == -1 {
-		return fmt.Errorf("GetCritLengthNegative: N (%v) minus the diff (%v) goes below zero", N, diff)
-	}
-	iCalcA.Mul(p.Prime.value, big2)
-
-	iCalcB.Mul(diff, TemplateLength)
-
-	iCalcC.Mul(N, TemplateLength)
-	iCalcC.Mul(iCalcC, big2)
-
-	iCalcA.Sub(iCalcA, iCalcB)
-	iCalcA.Add(iCalcA, iCalcC)
-
-	returnHereLen.Mul(diff, iCalcA)
-	return nil
-}
-
-//GetCritLengthWF : within family; return the total number of Templates for
-//potPrime p between fromN and toN, toN can be less than fromN.
-func GetCritLengthWF(p *PrimeGTE31, fromN, toN, returnHereLen *big.Int) error {
-	returnHereLen.SetInt64(0)
-	if fromN.Cmp(toN) == 0 {
-		return fmt.Errorf("GetCritLengthWF: from n (%v) and to n (%v) can not be equal", fromN, toN)
-	}
-	if fromN.Cmp(big0) == -1 || toN.Cmp(big0) == -1 {
-		return fmt.Errorf("GetCritLengthWF: Given n values '%v' and '%v', n's must be 0 or greater", fromN, toN)
-	}
-	diff := big.NewInt(0).Sub(fromN, toN)
-	diff.Abs(diff)
-	if fromN.Cmp(toN) == -1 {
-		return GetCritLengthPositiveWF(p, fromN, diff, returnHereLen)
-	}
-	return GetCritLengthNegativeWF(p, fromN, diff, returnHereLen)
-}
-
-//GetCritLengthByDiffWF : within family; return the total number of Templates for
-//potPrime p between fromN and toN, toN can be less than fromN.
-func GetCritLengthByDiffWF(p *PrimeGTE31, N, diff, returnHereLen *big.Int) error {
-	returnHereLen.SetInt64(0)
+//GetCritLengthByDiff : return the total number of Templates for
+//potPrime p between fromN and toN, toN can be less than fromN; if
+//abs is true return the length's absolute value; result returned in last param
+func GetCritLengthByDiff(abs bool, p *PrimeGTE31, N, diff, returnHereLen *big.Int) error {
+	returnHereLen.SetInt64(-1)
 	if N.Cmp(big0) == -1 {
 		return fmt.Errorf("GetCritLengthByDiffWF: desired N (%v) must be 0 or greater", N)
 	}
-	if diff.Cmp(big0) == 0 {
-		return fmt.Errorf("GetCritLengthByDiffWF: diff (%v) can be positive or negative, but not 0", diff)
-	}
+
 	iCalcA.Add(N, diff)
 	if iCalcA.Cmp(big0) == -1 {
 		return fmt.Errorf("GetCritLengthByDiffWF: your diff (%v) combined with N (%v) will go below 0", diff, N)
 	}
-	localDiff := big.NewInt(0).Set(diff)
-	localDiff.Abs(localDiff)
-	if diff.Cmp(big0) == 1 {
-		return GetCritLengthPositiveWF(p, N, localDiff, returnHereLen)
-	}
-	return GetCritLengthNegativeWF(p, N, localDiff, returnHereLen)
+	return GetCritLength(abs, p, N, iCalcA, returnHereLen)
+
 }
 
 //displayFullCritLengths : internal use, testing, checking
@@ -119,7 +77,6 @@ func displayFullCritLengths(pP *PrimeGTE31, fixedN *big.Int) {
 
 	N := big.NewInt(0)
 	nctrl := big.NewInt(0)
-	diff := big.NewInt(1)
 	res := big.NewInt(0)
 
 	mod := big.NewInt(0)
@@ -141,9 +98,7 @@ func displayFullCritLengths(pP *PrimeGTE31, fixedN *big.Int) {
 
 	for nctrl.Cmp(iter) < 1 {
 		nctrl.Add(nctrl, big1)
-		diff.Sub(N, nctrl)
-		diff.Abs(diff)
-		GetCritLengthPositiveWF(pP, N, diff, res)
+		GetCritLength(true, pP, N, nctrl, res)
 
 		pP.MemberAtN(nctrl, pp)
 		mod.Mod(res, pP.Prime.Value())
@@ -168,9 +123,7 @@ func displayFullCritLengths(pP *PrimeGTE31, fixedN *big.Int) {
 	cmp := big.NewInt(0).Sub(N, iter)
 	for nctrl.Cmp(cmp) > 0 {
 		nctrl.Sub(nctrl, big1)
-		diff.Sub(N, nctrl)
-		diff.Abs(diff)
-		err := GetCritLengthNegativeWF(pP, N, diff, res)
+		err := GetCritLength(true, pP, N, nctrl, res)
 		if err != nil {
 			fmt.Println(err)
 			break
@@ -336,7 +289,8 @@ func AnalyzeTNumbersInteractive() {
 		GetNfromTNum(giveTNum, primes[5], primes[5].Helper.MaxN)
 		GetNfromTNum(giveTNum, primes[6], primes[6].Helper.MaxN)
 		GetNfromTNum(giveTNum, primes[7], primes[7].Helper.MaxN)
-
+		// Debug:
+		//offsetCheck := big.NewInt(0)
 		fmt.Println("")
 		fmt.Println("==== Target:", giveTNum, "MaxN:", primes[0].Helper.MaxN)
 		for i := range primes {
@@ -363,8 +317,9 @@ func AnalyzeTNumbersInteractive() {
 				runningCnt++
 				//The two funcs below are equivalent, I'm prefering Direct because it
 				//doesn't need an effectiveTNumber to work and saves a few processor cycles.
-				//GetCrossNumMod(giveTNum, n, primes[i], offset)
 				GetCrossNumModDirect(giveTNum, n, primes[i], offset)
+				// Debug:
+				//GetCrossNumMod(giveTNum, n, primes[i], offsetCheck)
 
 				pass = "ok"
 				printIt = !broken
@@ -382,6 +337,8 @@ func AnalyzeTNumbersInteractive() {
 				if printIt {
 					wStr = fmt.Sprintf("%v: n=%v  %v %s", runningCnt, n, effectiveP, primeStr)
 					fmt.Fprintf(w, fmt.Sprintf(wFmt, wStr, effectStr, offset, pass))
+					// Debug:
+					//fmt.Fprintf(w, fmt.Sprintf(wFmt, wStr, "", offsetCheck, "--="))
 				}
 				n.Add(n, big1)
 			}

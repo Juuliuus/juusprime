@@ -873,8 +873,10 @@ func InitGTE31(prime *PrimeGTE31) {
 
 	//constant that reflects the initial Template offsets
 	//C + modOffset - prime's value
-	prime.Prime.modConst.Add(TemplateLength, prime.Prime.modOffset)
-	prime.Prime.modConst.Sub(prime.Prime.modConst, prime.Prime.value)
+	//= modOffset-mod30 (same as 30 + offset - (30+mod30))
+	//prime.Prime.modConst.Add(TemplateLength, prime.Prime.modOffset)
+	//prime.Prime.modConst.Sub(prime.Prime.modConst, prime.Prime.value)
+	prime.Prime.modConst.Sub(prime.Prime.modOffset, prime.Prime.mod30)
 
 	switch prime.Prime.value.Int64() {
 	case 31:

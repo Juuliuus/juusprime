@@ -185,7 +185,7 @@ func TestCritLengthRoutines(t *testing.T) {
 
 	N := big.NewInt(0)
 	nctrl := big.NewInt(-1)
-	diff := big.NewInt(1)
+	//diff := big.NewInt(1)
 	effective := big.NewInt(0)
 	test := big.NewInt(0)
 	current := big.NewInt(0)
@@ -203,9 +203,10 @@ func TestCritLengthRoutines(t *testing.T) {
 
 		for nctrl.Cmp(iter) < 1 {
 			nctrl.Add(nctrl, big1)
-			diff.Sub(N, nctrl)
-			diff.Abs(diff)
-			GetCritLengthPositiveWF(potprime.Prime.Value(), N, diff, res)
+			//diff.Sub(N, nctrl)
+			//diff.Abs(diff)
+			//GetCritLengthPositiveWF(potprime.Prime.Value(), N, diff, res)
+			GetCritLength(true, potprime, N, nctrl, res)
 
 			GetEffectiveTNum(nctrl, potprime, effective)
 			test.Sub(effective, current)
@@ -234,9 +235,10 @@ func TestCritLengthRoutines(t *testing.T) {
 				//general use, this break would be important.
 				break
 			}
-			diff.Sub(N, nctrl)
-			diff.Abs(diff)
-			GetCritLengthNegativeWF(potprime.Prime.Value(), N, diff, res)
+			//diff.Sub(N, nctrl)
+			//diff.Abs(diff)
+			//GetCritLengthNegativeWF(potprime.Prime.Value(), N, diff, res)
+			GetCritLength(true, potprime, N, nctrl, res)
 
 			GetEffectiveTNum(nctrl, potprime, effective)
 			test.Sub(current, effective)

@@ -417,16 +417,10 @@ func ShowMe(choice int, p *PrimeGTE31, b *big.Int) error {
 	switch choice {
 	case 1:
 		if p == nil {
-			err := fmt.Errorf("ShowMe: Bad prime sent in")
-			return err
-		}
-		if b == nil {
-			err := fmt.Errorf("ShowMe: Invalid N")
-			return err
+			return fmt.Errorf("ShowMe: Bad prime sent in")
 		}
 		if b.Cmp(big1) == -1 {
-			err := fmt.Errorf("ShowMe: N level must be greater or equal to 1")
-			return err
+			return fmt.Errorf("fixed N (%v) must GTE 1", b)
 		}
 		displayFullCritLengths(p, b)
 	default:
