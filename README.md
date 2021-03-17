@@ -9,10 +9,12 @@ Prime Tuplets (Sextuplets and/or Quintuplets and/or Quadruplets).
 A pdf file is available in the file list that details the underlying
 structures used for the algorithms. A nutshell summary is given below.
 
-New as of 5 March 2021 (v1.0.1):
-- add twin sextuplet check during Tuplet generation
-- add automation routines for use through shell scripts, etc.
-- Add initial Helper structure to hold useful runtime vars.
+New as of 17 March 2021 (v1.1.0):
+- Implement new getCrossNumModDirect for 30% speed increase
+- Add analysis routines.
+- automation with GeneratePrimeTupletsAutomated()
+
+See at bottom for other recent additions.
 
 juusprime is free software, licensed under the GNU GPL, version 3. It
 is written in pure Go, no other dependencies.
@@ -74,6 +76,14 @@ will take a minute or two, the file is about 190Mb.
 
 You can now generate tuplets for any range you desire at any time, call
 the GeneratePrimeTupletsInteractive() routine.
+
+Support for Automation for producing Tuplets (using basis-#) has been
+added so that processing can be done with scripts:
+
+GeneratePrimeTupletsAutomated(auto *AutomationStruct)
+
+Automation has been added to the associated pre-compiled executable (link above)
+
 
 -------------------------------------------------------------------------------
 
@@ -261,6 +271,10 @@ nutshell that how this engine works.
 
 ## Performance ##
 
+NOTE: A new offset calculation algorithm has decreased these times by
+about 30%.
+
+
 For the generation of basis-0 tuplets it takes about half an hour to
 generate all possible tuplets (Sext's, Quints, and quads) but only
 about 1 minute if you filter for sextuplets only. 
@@ -407,6 +421,12 @@ any problems.
 
 -------------------------------------------------------------------------------
 ### History ###
+
+
+v1.1.0 March 17 2021:
+- Implement new getCrossNumModDirect for 30% speed increase
+- Add analysis routines.
+- automation with GeneratePrimeTupletsAutomated()
 
 v1.0.1 March 5, 2021
 - add twin sextuplet check during Tuplet generation
