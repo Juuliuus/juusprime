@@ -52,14 +52,39 @@ func (lu *primeGT30Lookup) String() string {
 	return result
 }
 
+//PrimeGTE31InflationModel : This models a natural progression such that
+//one can project forward to any n any position in the natural Progression
+//and/or reverse engineer, or de-inflate, an inflated potPrime, used for
+//analysis and testing, it also holds effect information; Wait is used as a helper
+//var when re-constructing the q var, which is the inflation factor which is then
+//based on n level
+type PrimeGTE31InflationModel struct {
+	Q30     int
+	CEffect int
+	Wait    bool
+}
+
+//getPrimeGTE31InflationModel : returns a pointer to an initialized
+//PrimeGTE31InflationModel struct
+func getPrimeGTE31InflationModel() *PrimeGTE31InflationModel {
+	r := &PrimeGTE31InflationModel{
+		Q30:     0,
+		CEffect: 0,
+		Wait:    false,
+	}
+	return r
+}
+
 //PrimeGTE31 : Structure to use for primes greater than or equal to 31;
 //the sextuplet program only uses this for primes 31, 37, 41, 43, 47, "49",
 //53, and 59; there are no need for others since these can do the checking
 //for sextuplets via lookups all the way out to infinity + 1
 type PrimeGTE31 struct {
-	Helper *PrimeHelper
-	Prime  *primeBase
-	LookUp *primeGT30Lookup
+	Helper  *PrimeHelper
+	Prime   *primeBase
+	LookUp  *primeGT30Lookup
+	CQModel []*PrimeGTE31InflationModel
+
 	//only used in displaying, for humans, the details of the GTE 31 prime
 	hasInsertBefore0 bool
 	//Knowing this beforehand greatly simplifies the getting N equation.
@@ -76,25 +101,39 @@ func NewPrimeGTE31(prime *big.Int) *PrimeGTE31 {
 	}
 
 	r := &PrimeGTE31{
-		Helper: getPrimeHelper(),
-		Prime:  getPrimeBase(prime),
-		LookUp: getPrimeGT30Lookup(prime),
+		Helper:  getPrimeHelper(),
+		Prime:   getPrimeBase(prime),
+		LookUp:  getPrimeGT30Lookup(prime),
+		CQModel: make([]*PrimeGTE31InflationModel, prime.Int64()),
 	}
+	for i := 0; i < len(r.CQModel); i++ {
+		r.CQModel[i] = getPrimeGTE31InflationModel()
+	}
+	//fmt.Println(r.CQModel[0].Q30)
+	//fmt.Println(r.CQModel[len(r.CQModel)-1].Q30)
+
 	InitGTE31(r)
 	return r
 }
 
 //Stringer for PrimeGTE31
 func (prime *PrimeGTE31) String() string {
+	CQ := ""
+	for i := 0; i < len(prime.CQModel); i++ {
+		CQ = CQ + fmt.Sprintf("%v:%v:%v:%v ", i, prime.CQModel[i].CEffect, prime.CQModel[i].Q30, prime.CQModel[i].Wait)
+	}
 	return fmt.Sprintf("%v", prime.Prime) +
 		fmt.Sprintf("Has insert before 0: %v\n", prime.hasInsertBefore0) +
 		fmt.Sprintf("value squared ends in 1: %v\n", prime.valueSquaredEndsIn1) +
+		fmt.Sprintf("CQ lookup slice:\nindex:effect:q-value:wait-value\n%s\n", CQ) +
+		fmt.Sprint("Lookup Table:\n") +
 		fmt.Sprint(prime.LookUp)
 }
 
 //GetResultAtCrossNum : tests the GTE 31 primes at the given offset (crossing number) for the
 //applicable effect; addResult is changed and will be accumulated in the calling
-//function, n is the current n-level (0 based) one is testing.
+//function, n is the current n-level (0 based) one is testing, offset is calculated by
+//GetCrossNumModDirect() or GetCrossNumMod()
 func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int) bool {
 	//if the function does not find  that there is an effect at offset & n then it is a
 	//pass and CSextuplet needs to be returned
@@ -113,6 +152,107 @@ func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int)
 		return true
 	}
 	return false
+}
+
+//GetQbyReverseInflation : takes n and offset from other routines and returns,
+//in the parameter, a q appropriate for that n; the q is used to "deconstruct" an
+//inflated potPrime so that the offset can be re-traced to its actual natural
+//progression position so that its effect can be retrieved; this is a VERY INEFFICIENT
+//func, and is meant for testing and analyis only; it has been used to search for sextuplets
+//and returns correct results;
+//Lookup tables are the efficient way to see whether an offset is has an effect
+//of interest, if offset is in an inflated region then returns -1 in param
+func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int) error {
+	//see notes at bottom of func
+
+	returnHereQ.Set(big0)
+	cnt := big.NewInt(-1)
+
+	runningQ := big.NewInt(0)
+	inflated := n.Cmp(big0) == 1
+
+	for i := 0; i < len(prime.CQModel); i++ {
+		//move through arrary, each position counts. zero based.
+		cnt.Add(cnt, big1)
+
+		//landed on inflated crossing exactly
+		if cnt.Cmp(offset) == 0 {
+			returnHereQ.Set(runningQ)
+			return nil
+		}
+
+		if prime.CQModel[i].Wait {
+			//if current iteration members have same Q value do NOT add inflation!
+			//this is hard coded along with Q30 pos so we don't need to look ahead here...
+			continue
+		}
+
+		if inflated {
+			//cnt is incremented here too
+			cnt.Add(cnt, n)
+			//keep track of how many inflation spaces, ie. q for this n
+			runningQ.Add(runningQ, n)
+			if cnt.Cmp(offset) > -1 {
+				//ignore, effect is CSextuplet because its in inflated space
+				returnHereQ.SetInt64(-1)
+				return nil
+			}
+		}
+
+	}
+	return nil
+
+	//this routine was developed to be able to analyze offsets to ANY position into and/or out of
+	//an inflated potPrime. Long ago I had thought this would be un-doable,
+	//but it turns out it is not. It is just supremely inefficient. The reason it is
+	//difficult is that, in an inflated potPrime, one needs 3 variables, c, q and n, to be able to get
+	//back to the natural progression crossing, and we only have access to 2 vars: offset and n.
+
+	//Normal testing is done by lookup tables that can project out the position we are
+	//interested in to find out if an effect has happened, this direction is "easy"
+	//The reverse process of coming from an inflated potPrime back to its origin is "hard"
+
+	//This procedure gives back one of the unknown vars: q (already adjusted for n and so ready to
+	//use immediately without multiplication), the calculation must be very precise and must keep track
+	//of two running totals and handling "skip" spaces and "inflation" spaces properly.
+
+	//an entire struct was developed to keep track of this and to help this calculation.
+	//below is a diagrammatic represention, Numbers in parens, which can be single or double. If double
+	//the first number is a "skip" space and there is NO inflation between these pairs of numbers.
+	//I stands for the inflation spaces which be from 0 to infinity. I is tied directly to n. It is the
+	//sum of these I's that is returned as the q.
+
+	//(0) I (1,2) I (3) I (4,5) I (6,7) I (8)...
+
+	//The diagram above is exactly the natural progression when n, and therefore I, is zero.
+
+}
+
+//GetResultAtCrossNumByReverseInflation : Alternative to GetResultAtCrossNum(); Used for
+//testing and analysis because it is very inefficient and slow; It uses GetQbyReverseInflation()
+//which re-contructs the inflation at n to get the q needed to take the offset back to its
+//natural progression index to get its effect; addResult is changed and will be accumulated in the calling
+//function, n is the current n-level (0 based) one is testing, offset is calculated by
+//GetCrossNumModDirect() or GetCrossNumMod()
+func (prime *PrimeGTE31) GetResultAtCrossNumByReverseInflation(addResult *int, offset, n *big.Int) bool {
+
+	//if the function does not find  that there is an effect at offset & n then it is a
+	//pass and CSextuplet needs to be returned
+	*addResult = CSextuplet
+
+	prime.GetQbyReverseInflation(n, offset, iCalcA)
+
+	//above func returns -1 if offset is in inflation space
+	if iCalcA.Cmp(big0) == -1 {
+		return false
+	}
+
+	//The returned q is already adjusted for n, only need to subtract
+	iCalcB.Sub(offset, iCalcA)
+	*addResult = prime.CQModel[iCalcB.Int64()].CEffect
+	//fmt.Println("p=", prime.Prime.value, "n=", n, offset, iCalcA, *addResult)
+
+	return *addResult > CSextuplet
 }
 
 //MemberAtN : return the member of the potPrime family at
@@ -392,6 +532,9 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 				//final filter look has to take place for those cases.
 				return FilterMap[inResult]&postFilter != 0
 			}
+			//You can also use GetResultAtCrossNumByReverseInflation() which is great for
+			//testing and analysis, but extremely inefficient. Of theoretical importance but
+			//not for practical use.
 		}
 		return false
 	}
@@ -648,13 +791,7 @@ func GeneratePrimeTupletsAutomated(auto *AutomationStruct) int {
 
 //ShowDetails : print to screen all the GTE 31 details
 func (prime *PrimeGTE31) ShowDetails(withPausing bool) {
-	fmt.Println(fmt.Sprintf("P = %v", prime.Prime.value))
-	fmt.Println(fmt.Sprintf("P^2 = %v", big.NewInt(0).Mul(prime.Prime.value, prime.Prime.value)))
-	fmt.Println(fmt.Sprintf("T# = %v", prime.Prime.startTemplateNum))
-	fmt.Println(fmt.Sprintf("T expanded = %v", TNumToInt(prime.Prime.startTemplateNum)))
-	fmt.Println(prime.Prime.naturalProgression)
-	fmt.Println("\nLook Up matrix:")
-	fmt.Println(prime.LookUp)
+	fmt.Println(prime)
 	if withPausing {
 		waitForInput()
 	}
@@ -878,10 +1015,40 @@ func InitGTE31(prime *PrimeGTE31) {
 	//prime.Prime.modConst.Sub(prime.Prime.modConst, prime.Prime.value)
 	prime.Prime.modConst.Sub(prime.Prime.modOffset, prime.Prime.mod30)
 
+	fillCQ := func(inflate []int) {
+		val := 0
+		idx := 0
+		for i := 0; i < len(prime.CQModel); i++ {
+			prime.CQModel[i].Q30 = val
+			/*
+				if inflate[idx] == 99 {
+					continue
+				}
+			*/
+			if inflate[idx] == i {
+				prime.CQModel[i].Wait = true
+				idx++
+				continue
+			}
+			val++
+		}
+	}
+
 	switch prime.Prime.value.Int64() {
 	case 31:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = true
+
+		//See case 37 for explanation of this
+		sl := []int{24, 999}
+		fillCQ(sl)
+		prime.CQModel[6].CEffect = CRQuint13
+		prime.CQModel[10].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[12].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[16].CEffect = CXNoTrack //cX_23;
+		prime.CQModel[18].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[22].CEffect = CLQuint29
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -913,6 +1080,21 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 37:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+
+		//This structure is used for reverse inflation Analysis
+		//rather than type all the structures by hand, one only needs
+		//to indicate to fillCQ() which postiions in the natural progression
+		//hang together as a group, that is, one is a "skip" space and those
+		//pairs (and sometimes triplets) of numbers have the same q value.
+		sl := []int{1, 7, 12, 17, 22, 28, 33, 999}
+		fillCQ(sl)
+		prime.CQModel[0].CEffect = CXNoTrack  //cX_25;
+		prime.CQModel[5].CEffect = CXNoTrack  //cX_23;
+		prime.CQModel[15].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[20].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[27].CEffect = CLQuint29
+		prime.CQModel[30].CEffect = CRQuint13
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -944,6 +1126,16 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 41:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
+
+		sl := []int{3, 6, 10, 14, 18, 21, 25, 29, 32, 36, 39, 999}
+		fillCQ(sl)
+		prime.CQModel[2].CEffect = CLQuint29
+		prime.CQModel[8].CEffect = CRQuint13
+		prime.CQModel[16].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[24].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[27].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[35].CEffect = CXNoTrack //cX_23;
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -975,6 +1167,16 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 43:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+
+		sl := []int{1, 4, 8, 11, 14, 17, 21, 24, 27, 31, 34, 37, 41, 999}
+		fillCQ(sl)
+		prime.CQModel[0].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[6].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[9].CEffect = CRQuint13
+		prime.CQModel[23].CEffect = CXNoTrack //cX_23;
+		prime.CQModel[26].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[40].CEffect = CLQuint29
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -1006,6 +1208,16 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 47:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+
+		sl := []int{1, 4, 6, 9, 12, 15, 17, 20, 23, 26, 28, 31, 34, 37, 40, 42, 45, 999}
+		fillCQ(sl)
+		prime.CQModel[0].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[3].CEffect = CLQuint29
+		prime.CQModel[19].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[22].CEffect = CXNoTrack //cX_23;
+		prime.CQModel[38].CEffect = CRQuint13
+		prime.CQModel[41].CEffect = CXNoTrack //cX_17;
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -1037,6 +1249,16 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 49:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
+
+		sl := []int{2, 4, 7, 9, 12, 15, 17, 20, 22, 25, 28, 30, 33, 35, 38, 40, 43, 46, 47, 999}
+		fillCQ(sl)
+		prime.CQModel[6].CEffect = CXNoTrack  //cX_23;
+		prime.CQModel[16].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[19].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[29].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[39].CEffect = CRQuint13
+		prime.CQModel[45].CEffect = CLQuint29
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -1068,6 +1290,16 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 53:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+
+		sl := []int{1, 3, 5, 8, 10, 12, 15, 17, 19, 21, 24, 26, 28, 31, 33, 35, 38, 40, 42, 45, 47, 49, 51, 999}
+		fillCQ(sl)
+		prime.CQModel[0].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[11].CEffect = CRQuint13
+		prime.CQModel[14].CEffect = CLQuint29
+		prime.CQModel[25].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[32].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[46].CEffect = CXNoTrack //cX_23;
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:
@@ -1099,6 +1331,16 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 59:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
+
+		sl := []int{1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 57, 999}
+		fillCQ(sl)
+		prime.CQModel[15].CEffect = CLQuint29
+		prime.CQModel[23].CEffect = CXNoTrack //cX_25;
+		prime.CQModel[27].CEffect = CXNoTrack //cX_23;
+		prime.CQModel[35].CEffect = CXNoTrack //cX_19;
+		prime.CQModel[39].CEffect = CXNoTrack //cX_17;
+		prime.CQModel[47].CEffect = CRQuint13
+
 		for i := 0; i < len(prime.LookUp.C); i++ {
 			switch i {
 			case 0:

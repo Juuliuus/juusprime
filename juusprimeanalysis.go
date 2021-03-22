@@ -192,6 +192,29 @@ func P59() *PrimeGTE31 {
 	return NewPrimeGTE31(big.NewInt(59))
 }
 
+//GetResultAtCrossNum : tests the GTE 31 primes at the given offset (crossing number) for the
+//applicable effect; addResult is changed and will be accumulated in the calling
+//function, n is the current n-level (0 based) one is testing.
+func (prime *PrimeGTE31) getResultAtCrossNumANALYSIS(addResult *int, offset, n *big.Int) (bool, int) {
+	//if the function does not find  that there is an effect at offset & n then it is a
+	//pass and CSextuplet needs to be returned
+	*addResult = CSextuplet
+
+	for i := 0; i < lookUpSize; i++ {
+		iCalcA.Mul(n, prime.LookUp.Q[i])
+		iCalcA.Add(iCalcA, prime.LookUp.C[i])
+		switch iCalcA.Cmp(offset) {
+		case -1:
+			continue
+		case 1:
+			return false, (i * -1) - 1
+		}
+		*addResult = prime.LookUp.Effect[i]
+		return true, i
+	}
+	return false, -99
+}
+
 //AnalyzeTNumbersInteractive : interactive full analysis of any
 //TNumbers you like >= 32, =careful= large TNumbers could take a while
 //and can produce LOTS of output.
@@ -265,7 +288,7 @@ func AnalyzeTNumbersInteractive() {
 	fmt.Println("analysing ", sl)
 
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 1)
-	wFmt := "%s\t  %s\t %v \t %s\n"
+	wFmt := "%s\t  %s\t %v \t %s \t  (%s  %s %s)\n"
 
 	effectStr := ""
 	wStr := ""
@@ -273,6 +296,9 @@ func AnalyzeTNumbersInteractive() {
 	printIt := false
 	wasBroken := true
 	big32 := big.NewInt(32)
+	idx := -1
+	found := false
+	C, Q, I := "", "", ""
 
 	for x := range sl {
 		fmt.Sscan(sl[x], giveTNum)
@@ -324,7 +350,7 @@ func AnalyzeTNumbersInteractive() {
 				pass = "ok"
 				printIt = !broken
 				effectStr = "-"
-				if primes[i].GetResultAtCrossNum(&addResult, offset, n) {
+				if found, idx = primes[i].getResultAtCrossNumANALYSIS(&addResult, offset, n); found {
 					pass = "altered"
 					if addResult == 4 {
 						pass = "broken!"
@@ -336,7 +362,18 @@ func AnalyzeTNumbersInteractive() {
 
 				if printIt {
 					wStr = fmt.Sprintf("%v: n=%v  %v %s", runningCnt, n, effectiveP, primeStr)
-					fmt.Fprintf(w, fmt.Sprintf(wFmt, wStr, effectStr, offset, pass))
+					C, Q = "", ""
+					switch idx {
+					case -99:
+						I = "early"
+					case -1, -2, -3, -4, -5, -6:
+						I = strconv.Itoa(idx)
+					default:
+						C = fmt.Sprintf("%v", primes[i].LookUp.C[idx])
+						Q = fmt.Sprintf("%v", primes[i].LookUp.Q[idx])
+						I = strconv.Itoa(idx + 1) //I think of the lookups in terms of 1 based!
+					}
+					fmt.Fprintf(w, fmt.Sprintf(wFmt, wStr, effectStr, offset, pass, I, C, Q))
 					// Debug:
 					//fmt.Fprintf(w, fmt.Sprintf(wFmt, wStr, "", offsetCheck, "--="))
 				}
@@ -345,10 +382,10 @@ func AnalyzeTNumbersInteractive() {
 
 			if broken {
 				if !wasBroken {
-					fmt.Fprintf(w, fmt.Sprintf(wFmt, " ok", "", "", ""))
+					fmt.Fprintf(w, fmt.Sprintf(wFmt, " ok", "", "", "", "", "", ""))
 				} else {
 					//fmt.Fprintf(w, fmt.Sprintf(wFmt, " ==>  EFFECTED  <==", "", "", ""))
-					fmt.Fprintf(w, fmt.Sprintf(wFmt, "", "", "", "                           ==>  EFFECTED  <=="))
+					fmt.Fprintf(w, fmt.Sprintf(wFmt, "", "", "", "", "", "", "                           ==>  EFFECTED  <=="))
 				}
 			}
 			w.Flush()
