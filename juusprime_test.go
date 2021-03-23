@@ -250,3 +250,366 @@ func TestCritLengthRoutines(t *testing.T) {
 		}
 	}
 }
+
+//TestReverseInflation : takes random regular results from offset analysis
+//in addition to artificially inflated offsets and runs them through
+//the reverse inflation routines. Success is that the effect at the offset
+//is equal.
+func TestReverseInflation(t *testing.T) {
+	fmt.Println("testing reverse inflation routines...")
+	res := -1
+
+	type offsetCheck struct {
+		n, offset *big.Int
+		expected  int
+	}
+
+	getStruct := func(theN, theO, theE int) *offsetCheck {
+		return &offsetCheck{
+			n:        big.NewInt(int64(theN)),
+			offset:   big.NewInt(int64(theO)),
+			expected: theE,
+		}
+	}
+
+	debug := false
+	n0 := 0
+	n1 := 1
+	n2 := 2
+	n13 := 13
+	n665 := 665
+	extra := ""
+
+	inflate := func(sl *[]*offsetCheck, p *PrimeGTE31) {
+		//constructs offsets to test
+		v := p.Prime.value
+		for i := 0; i < len(p.CQModel); i++ {
+			if p.CQModel[i].CEffect == 0 {
+				continue
+			}
+			*sl = append(*sl, getStruct(n0, i+(p.CQModel[i].Q30*n0), p.CQModel[i].CEffect))
+			*sl = append(*sl, getStruct(n1, i+(p.CQModel[i].Q30*n1), p.CQModel[i].CEffect))
+			*sl = append(*sl, getStruct(n2, i+(p.CQModel[i].Q30*n2), p.CQModel[i].CEffect))
+			*sl = append(*sl, getStruct(n13, i+(p.CQModel[i].Q30*n13), p.CQModel[i].CEffect))
+			*sl = append(*sl, getStruct(n665, i+(p.CQModel[i].Q30*n665), p.CQModel[i].CEffect))
+			if debug {
+				fmt.Println(fmt.Sprintf("p=%v n=%v offset=%v effect=%v", v, n0, i+(p.CQModel[i].Q30*n0), p.CQModel[i].CEffect))
+				fmt.Println(fmt.Sprintf("p=%v n=%v offset=%v effect=%v", v, n1, i+(p.CQModel[i].Q30*n1), p.CQModel[i].CEffect))
+				fmt.Println(fmt.Sprintf("p=%v n=%v offset=%v effect=%v", v, n2, i+(p.CQModel[i].Q30*n2), p.CQModel[i].CEffect))
+				fmt.Println(fmt.Sprintf("p=%v n=%v offset=%v effect=%v", v, n13, i+(p.CQModel[i].Q30*n13), p.CQModel[i].CEffect))
+				fmt.Println(fmt.Sprintf("p=%v n=%v offset=%v effect=%v", v, n665, i+(p.CQModel[i].Q30*n665), p.CQModel[i].CEffect))
+			}
+		}
+	}
+
+	doTest := func(sl []*offsetCheck, p *PrimeGTE31) {
+		for i := range sl {
+			p.GetResultAtCrossNumByReverseInflation(&res, sl[i].offset, sl[i].n)
+			if res != sl[i].expected {
+				t.Errorf("Reverse Inflation error, Wanted %v, got %v", sl[i].expected, res)
+			}
+			if debug {
+				fmt.Print(res, sl[i].expected)
+				extra = "\n"
+				if res != sl[i].expected {
+					extra = " <<< oops \n"
+				}
+				fmt.Print(extra)
+			}
+		}
+		if debug {
+			fmt.Println("-------------")
+		}
+
+	}
+
+	//got all these effects from a full analysis output,
+	//effect should Match with the reverse inflation Method
+	var currStruct *offsetCheck
+	p31 := P31()
+	p37 := P37()
+	p41 := P41()
+	p43 := P43()
+	p47 := P47()
+	p49 := P49()
+	p53 := P53()
+	p59 := P59()
+
+	sl31 := make([]*offsetCheck, 5)
+	//hand entered from full analysis results
+	for i := 0; i < len(sl31); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(0, 10, 4)
+		case 1:
+			currStruct = getStruct(0, 6, 2)
+		case 2:
+			currStruct = getStruct(1, 12, 2)
+		case 3:
+			currStruct = getStruct(1, 32, 4)
+		case 4:
+			currStruct = getStruct(4, 50, 4)
+		}
+		sl31[i] = currStruct
+	}
+
+	//check all strikes at various n by puffing up CQModel
+	inflate(&sl31, p31)
+	doTest(sl31, p31)
+
+	sl37 := make([]*offsetCheck, 9)
+	for i := 0; i < len(sl37); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(0, 36, 0)
+		case 1:
+			currStruct = getStruct(1, 59, 0)
+		case 2:
+			currStruct = getStruct(2, 0, 4)
+		case 3:
+			currStruct = getStruct(3, 73, 0)
+		case 4:
+			currStruct = getStruct(4, 130, 0)
+		case 5:
+			currStruct = getStruct(0, 27, 1)
+		case 6:
+			currStruct = getStruct(3, 0, 4)
+		case 7:
+			currStruct = getStruct(8, 203, 1)
+		case 8:
+			currStruct = getStruct(0, 15, 4)
+		}
+		sl37[i] = currStruct
+	}
+
+	inflate(&sl37, p37)
+	doTest(sl37, p37)
+
+	sl41 := make([]*offsetCheck, 13)
+	for i := 0; i < len(sl41); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(13, 412, 0)
+		case 1:
+			currStruct = getStruct(14, 345, 0)
+		case 2:
+			currStruct = getStruct(15, 136, 0)
+		case 3:
+			currStruct = getStruct(16, 126, 0)
+		case 4:
+			currStruct = getStruct(20, 276, 0)
+		case 5:
+			currStruct = getStruct(24, 215, 0)
+		case 6:
+			currStruct = getStruct(22, 607, 4)
+		case 7:
+			currStruct = getStruct(0, 17, 0)
+		case 8:
+			currStruct = getStruct(1, 37, 0)
+		case 9:
+			currStruct = getStruct(2, 40, 4)
+		case 10:
+			currStruct = getStruct(3, 103, 0)
+		case 11:
+			currStruct = getStruct(5, 167, 0)
+		case 12:
+			currStruct = getStruct(2, 87, 4)
+		}
+		sl41[i] = currStruct //getStruct(13, 412, 0)
+	}
+
+	inflate(&sl41, p41)
+	doTest(sl41, p41)
+
+	sl43 := make([]*offsetCheck, 16)
+
+	for i := 0; i < len(sl43); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(0, 38, 0)
+		case 1:
+			currStruct = getStruct(2, 14, 4)
+		case 2:
+			currStruct = getStruct(4, 139, 0)
+		case 3:
+			currStruct = getStruct(5, 23, 0)
+		case 4:
+			currStruct = getStruct(1, 68, 1)
+		case 5:
+			currStruct = getStruct(0, 40, 1)
+		case 6:
+			currStruct = getStruct(2, 14, 4)
+		case 7:
+			currStruct = getStruct(14, 62, 4)
+		case 8:
+			currStruct = getStruct(6, 119, 4)
+		case 9:
+			currStruct = getStruct(5, 103, 4)
+		case 10:
+			currStruct = getStruct(6, 168, 0)
+		case 11:
+			currStruct = getStruct(27, 171, 2)
+		case 12:
+			currStruct = getStruct(2, 55, 4)
+		case 13:
+			currStruct = getStruct(4, 0, 4)
+		case 14:
+			currStruct = getStruct(5, 180, 1)
+		case 15:
+			currStruct = getStruct(6, 134, 4)
+		}
+		sl43[i] = currStruct
+	}
+
+	inflate(&sl43, p43)
+	doTest(sl43, p43)
+
+	sl47 := make([]*offsetCheck, 15)
+
+	for i := 0; i < len(sl47); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(0, 19, 4)
+		case 1:
+			currStruct = getStruct(2, 100, 0)
+		case 2:
+			currStruct = getStruct(3, 17, 0)
+		case 3:
+			currStruct = getStruct(4, 79, 0)
+		case 4:
+			currStruct = getStruct(5, 6, 0)
+		case 5:
+			currStruct = getStruct(6, 37, 0)
+		case 6:
+			currStruct = getStruct(7, 223, 4)
+		case 7:
+			currStruct = getStruct(9, 211, 0)
+		case 8:
+			currStruct = getStruct(0, 38, 2)
+		case 9:
+			currStruct = getStruct(0, 41, 4)
+		case 10:
+			currStruct = getStruct(31, 391, 4)
+		case 11:
+			currStruct = getStruct(6, 0, 4)
+		case 12:
+			currStruct = getStruct(3, 55, 4)
+		case 13:
+			currStruct = getStruct(5, 171, 4)
+		case 14:
+			currStruct = getStruct(2, 43, 4)
+		}
+		sl47[i] = currStruct
+	}
+
+	inflate(&sl47, p47)
+	doTest(sl47, p47)
+
+	sl49 := make([]*offsetCheck, 13)
+
+	for i := 0; i < len(sl49); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(1, 70, 0)
+		case 1:
+			currStruct = getStruct(2, 73, 0)
+		case 2:
+			currStruct = getStruct(3, 18, 4)
+		case 3:
+			currStruct = getStruct(5, 155, 0)
+		case 4:
+			currStruct = getStruct(6, 174, 0)
+		case 5:
+			currStruct = getStruct(26, 773, 1)
+		case 6:
+			currStruct = getStruct(1, 31, 4)
+		case 7:
+			currStruct = getStruct(3, 18, 4)
+		case 8:
+			currStruct = getStruct(5, 26, 4)
+		case 9:
+			currStruct = getStruct(34, 641, 4)
+		case 10:
+			currStruct = getStruct(1, 73, 1)
+		case 11:
+			currStruct = getStruct(13, 146, 4)
+		case 12:
+			//currStruct = getStruct(6, 183, 1) //fail test
+			currStruct = getStruct(6, 183, 2)
+		}
+		sl49[i] = currStruct
+	}
+
+	inflate(&sl49, p49)
+	doTest(sl49, p49)
+
+	sl53 := make([]*offsetCheck, 12)
+
+	for i := 0; i < len(sl53); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(0, 36, 0)
+		case 1:
+			currStruct = getStruct(1, 31, 0)
+		case 2:
+			currStruct = getStruct(2, 96, 0)
+		case 3:
+			currStruct = getStruct(4, 0, 4)
+		case 4:
+			currStruct = getStruct(6, 56, 0)
+		case 5:
+			currStruct = getStruct(21, 182, 1)
+		case 6:
+			currStruct = getStruct(8, 0, 4)
+		case 7:
+			currStruct = getStruct(4, 35, 2)
+		case 8:
+			currStruct = getStruct(6, 202, 4)
+		case 9:
+			currStruct = getStruct(50, 0, 4)
+		case 10:
+			currStruct = getStruct(0, 0, 4)
+		case 11:
+			//currStruct = getStruct(0, 14, 4) //test fail
+			currStruct = getStruct(0, 14, 1)
+		}
+		sl53[i] = currStruct
+	}
+
+	inflate(&sl53, p53)
+	doTest(sl53, p53)
+
+	sl59 := make([]*offsetCheck, 11)
+
+	for i := 0; i < len(sl59); i++ {
+		switch i {
+		case 0:
+			currStruct = getStruct(0, 47, 2)
+		case 1:
+			currStruct = getStruct(1, 50, 0)
+		case 2:
+			currStruct = getStruct(3, 46, 0)
+		case 3:
+			currStruct = getStruct(11, 103, 1)
+		case 4:
+			currStruct = getStruct(4, 143, 2)
+		case 5:
+			currStruct = getStruct(0, 39, 4)
+		case 6:
+			currStruct = getStruct(0, 47, 2)
+		case 7:
+			currStruct = getStruct(14, 383, 2)
+		case 8:
+			currStruct = getStruct(52, 431, 1)
+		case 9:
+			currStruct = getStruct(17, 455, 2)
+		case 10:
+			//currStruct = getStruct(0, 35, 3) //test fail
+			currStruct = getStruct(0, 35, 4)
+		}
+		sl59[i] = currStruct
+	}
+
+	inflate(&sl59, p59)
+	doTest(sl59, p59)
+}
