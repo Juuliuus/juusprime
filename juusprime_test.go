@@ -357,7 +357,7 @@ func TestReverseInflation(t *testing.T) {
 	inflate(&sl31, p31)
 	doTest(sl31, p31)
 
-	sl37 := make([]*offsetCheck, 9)
+	sl37 := make([]*offsetCheck, 10)
 	for i := 0; i < len(sl37); i++ {
 		switch i {
 		case 0:
@@ -378,6 +378,8 @@ func TestReverseInflation(t *testing.T) {
 			currStruct = getStruct(8, 203, 1)
 		case 8:
 			currStruct = getStruct(0, 15, 4)
+		case 9:
+			currStruct = getStruct(1, 66, 0) //edge case 37 at n=1 is 67, 66 must be effect 0
 		}
 		sl37[i] = currStruct
 	}

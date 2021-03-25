@@ -188,7 +188,9 @@ func GetEffectiveTNumSimple(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) 
 }
 
 //GetNfromTNumComplicated : Given a TNum & PrimeGTE31 return the the n value,
-//ie. how many potential primes must be tested
+//ie. how many potential primes must be tested; Validation that givenTNum is
+//equal to or greater than p's effective start TNumber is the responsibility of the
+//calling func();
 //to complete the calculation. This comes from the first derivation of the formula and is
 //complicated in many ways (lots of roots), a simpler form was found, see GetNfromTNum
 func GetNfromTNumComplicated(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
@@ -246,7 +248,9 @@ func GetNfromIntComplicated(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int
 }
 
 //GetNfromTNum : Given a TNum and a PrimeGTE31 the n value, ie. how many potential
-//primes must be tested to complete the calculation. This is later derived algebraic equation
+//primes must be tested to complete the calculation; Validation that givenTNum is
+//equal to or greater than p's effective start TNumber is the responsibility of the
+//calling func(); This is later derived algebraic equation
 //that turns out to be far simpler and just as accurate. The first equation was quite
 //complicated, see GetNfromTNumComplicated
 func GetNfromTNum(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {

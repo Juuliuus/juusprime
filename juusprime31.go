@@ -61,7 +61,9 @@ func (lu *primeGT30Lookup) String() string {
 type PrimeGTE31InflationModel struct {
 	Q30     int
 	CEffect int
-	Wait    bool
+	//rather than have to look ahead to the next index position, I store
+	//this value to help the routine and keep it simple
+	Wait bool
 }
 
 //getPrimeGTE31InflationModel : returns a pointer to an initialized
@@ -109,8 +111,6 @@ func NewPrimeGTE31(prime *big.Int) *PrimeGTE31 {
 	for i := 0; i < len(r.CQModel); i++ {
 		r.CQModel[i] = getPrimeGTE31InflationModel()
 	}
-	//fmt.Println(r.CQModel[0].Q30)
-	//fmt.Println(r.CQModel[len(r.CQModel)-1].Q30)
 
 	InitGTE31(r)
 	return r
@@ -165,6 +165,11 @@ func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int)
 func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int) error {
 	//see notes at bottom of func
 
+	prime.MemberAtN(n, iCalcD)
+	if n.Cmp(big0) == -1 || offset.Cmp(iCalcD) != -1 || offset.Cmp(big0) == -1 {
+		return fmt.Errorf("invalid params, n (%v) must be >= 0 and/or offset (%v) must be >=0 and less than prime value", n, offset)
+	}
+
 	returnHereQ.Set(big0)
 	cnt := big.NewInt(-1)
 
@@ -194,6 +199,7 @@ func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int)
 			runningQ.Add(runningQ, n)
 			if cnt.Cmp(offset) > -1 {
 				//ignore, effect is CSextuplet because its in inflated space
+				//this flag must be checked by calling func
 				returnHereQ.SetInt64(-1)
 				return nil
 			}
@@ -236,13 +242,33 @@ func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int)
 //GetCrossNumModDirect() or GetCrossNumMod()
 func (prime *PrimeGTE31) GetResultAtCrossNumByReverseInflation(addResult *int, offset, n *big.Int) bool {
 
+	const (
+		attn  = "ATTN: Result is meaningless!"
+		where = "func GetResultAtCrossNumByReverseInflation()"
+	)
 	//if the function does not find  that there is an effect at offset & n then it is a
 	//pass and CSextuplet needs to be returned
 	*addResult = CSextuplet
 
+	//since this func is used for analysis and playing around, quite important to validate params
+	if n.Cmp(big0) == -1 {
+		fmt.Println("")
+		fmt.Println(where)
+		fmt.Println(fmt.Sprintf("%s n=%v, n must be GTE 0", attn, n))
+		return false
+	}
+
+	prime.MemberAtN(n, iCalcD)
+	if offset.Cmp(iCalcD) != -1 || offset.Cmp(big0) == -1 {
+		fmt.Println("")
+		fmt.Println(where)
+		fmt.Println(fmt.Sprintf("%s offset %v must be >=0 and less than potPrime %v", attn, offset, iCalcD))
+		return false
+	}
+
 	prime.GetQbyReverseInflation(n, offset, iCalcA)
 
-	//above func returns -1 if offset is in inflation space
+	//GetQbyReverseInflation func returns -1 if offset is in inflation space
 	if iCalcA.Cmp(big0) == -1 {
 		return false
 	}

@@ -403,6 +403,26 @@ func AnalyzeTNumbersInteractive() {
 	}
 }
 
+//InflatePrimeGTE31Position : Given any idx <= prime.value-1 use n to calculate
+//its expanded position. This is similar to the Lookup Table where c + qn is used,
+//but this can be for any position in the prime's cycle using the CQModel slice;
+//used for analysis, offset result returned in parameter
+func InflatePrimeGTE31Position(prime *PrimeGTE31, idx int, n, returnHereOffset *big.Int) (effect int) {
+	if idx >= len(prime.CQModel) {
+		fmt.Println(fmt.Sprintf("InflatePrimeGTE31Position: idx %v is out of range 0-%v", idx, len(prime.CQModel)-1))
+		effect = -1
+		returnHereOffset.SetInt64(-1)
+		return
+	}
+	effect = prime.CQModel[idx].CEffect
+	//c + qn, c is 0-based idx into the prime natural progression, q is a constant from nat. progression
+	iCalcA.SetInt64(int64(idx))
+	iCalcB.SetInt64(int64(prime.CQModel[idx].Q30))
+	returnHereOffset.Mul(iCalcB, n)
+	returnHereOffset.Add(returnHereOffset, iCalcA)
+	return
+}
+
 //CheckTwinSextuplet : testing, check rawdata files for twin
 //twin Sextuplets.
 func CheckTwinSextuplet(filename string) {
