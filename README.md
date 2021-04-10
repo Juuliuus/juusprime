@@ -7,7 +7,8 @@ This is the package code for juusprime which is an engine to generate
 Prime Tuplets (Sextuplets and/or Quintuplets and/or Quadruplets). 
 
 A pdf file is available in the file list that details the underlying
-structures used for the algorithms. A nutshell summary is given below.
+theory and structures used for the algorithms, only algebra is
+needed. A nutshell summary is given below.
 
 New as of 17 March 2021 (v1.1.0):
 - Implement new getCrossNumModDirect for 30% speed increase
@@ -41,10 +42,7 @@ thing.
 It uses a gestalt-y block approach to tuplet generation, not brute
 force. The concepts, as I first outlined with pencil and paper,
 indicate that it will be 100% accurate and find 100% of the wanted
-tuplets in the region you are searching. I will be working on a pdf
-that outlines in detail how the structures are built and used. For now
-I include below a "short" summary of the thoughts and theory behind
-it.
+tuplets in the region you are searching. 
 
 It uses go's big Int (and where needed, big Float), which means it can
 work with any integer that you care to type in. But, as usual for primes,
@@ -88,199 +86,37 @@ Automation has been added to the associated pre-compiled executable (link above)
 -------------------------------------------------------------------------------
 
 
-## Nutshell overview of the structure and logic ##
+
+
+
+
+## Nutshell overview ##
 
 With these structures the number line is broken up into 2 types of
 blocks of numbers: TNumbers (Template Numbers) and Basis Numbers. It
 is recommended to do basis number generation because it is then
 assured that no numbers on the number line are left out by accident.
 
-This will be a an overview, there are many details not covered
-here. The details are available in the pdf file.
+This is a very short overview. The details are available in the pdf
+file which will be updated as new analysis routines are written..
 
-To understand these blocks the Primes are first split into 3 groups, each handled
-separately: primes 2-3-5, primes 7-29, and the primes 31-59.
+These regions arise out of splitting the prime universe into 3
+separate regions and they arise naturally, which helps to turn the
+chaos of the primes into groups that useful and easy(ier) to work
+with: primes 2-3-5, primes 7-29, and the primes 31-59.
 
-### Primes 2, 3, & 5 ###
-
-These form the blocks of the TNumbers (Template Numbers) because they
-form sextuplet templates.
-
-It is very easy to see for yourself, mark a list numbered 1 to 120 and
-cross out every 2nd, 3rd, and fifth multiple; i.e., a sieve using only
-2,3,5.
-
-You will then clearly see at number line position 25 a repeating pattern 30
-numbers long that shows the sextuplet sitting untouched on the right
-of the tempalte and a twin prime on the left. In this project I focus
-only on the sextuplet structure, the "rogue" twin on the left is
-ignored. 
-
-If you drew the numbers out to 120 you will see the pattern 25-54
-(Tnumber 1), 55-84 (TNum 2), and 85-114 (TNum 3). 
-
-It is in TNum 3 that we find the first sextuplet resides: 
-97, 101, 103, 107, 109, 113.
-
-NB: The above is the first sexuplet only if you don't want to count the
-7,11,13,17,19,23 one.
-
-So actually we need to do nothing with 2,3,5; just accept that every
-TNumber always starts life out as a pristine sextuplet waiting to be
-realized (or destroyed).
-
-TNumber math is simple:
-
-TNum = (Int + 5) div 30  (div result, not quotient)
-
-Int = (TNum * 30) - 5
-
-The Int= equation above gives the starting integer of that TNumber
-range. If you want the ending integer simply add 29.
-
-
-### Primes 7-29 ###
-
-These form the block I call the "29basis". What's nice about the basis
-is that it shows the only places Tuplets =can= occur and it is
-re-usable since it recurs after a reasonable length.
-
-Many details here but in summary: It is possible to create a sequence
-for each of these primes such that one can calculate what "effect" it
-will have at any TNumber by its crossing number at that TNumber. 
-
-An effect is: does it leave the sextuplet above it alone? Or does it
-convert the sextuplet to either a left sided quintuplet, or a right
-sided quintuplet, or does it destroy it by taking out either one of
-the twin primes at the sextuplets center?
-
-prime# 7 for example: Its starting TNumber is TNum 1, because its square
-lives in that TNumber. Computing the progressions as it moves
-through the seven Templates between 1 and 7 (inclusive) results in  its
-natural progression (mod based) of: 3, 1, 6, 4, 2, 0, 5
-
-In this case we see that its third value  will cross TNum 3. The
-effect prime 7 has when it crosses with 6 is none, ie., it leaves the
-sextuplet untouched, and that is why the sextuplet in TNum 3 exists.
-
-It turns out any crossing of prime 7, other than mod 6, will either destroy
-the sextuplet or change it to a Quintuplet (crossing 0 leaves a left
-sided quintuplet, crossing 5 leaves a right sided quintuplet, and
-crossings 1,2,3,4 destroy the sextuplet). Factoid: From this you can
-infer that any difference between TNumbers that contain sextuplets, or
-members of differing sextuplets will always be evenly divisible by 7,
-which is the case.
-
-Similar structures are built for each of the other primes 11-29. Then
-starting at TNumber 28 (which is where prime 29 begins having an
-effect on the following integers) one can use these cycles to simply
-walk through all possible combinations of the 7-29 cycles until the
-overall cycle starts repeating: the 29Basis.
-
-This is not as bad as it sounds! The size will be 7-29 primorial
-(ie. 7 * 11 * 13 * 17 * 19 * 23 * 29). This results in a block,
-starting at TNum 28 that stretches out to TNum 215656468 (inclusive)
-(the length is 215656441 TNumbers). This encompasses a range of
-integers from 835 to 6469694064. This is basis-0.
-
-Basis-1 covers TNums from 215656469 to 431312909, and so on.
-
-When this 29Basis file is written out we now have a map to the only
-possible locations of the Tuplets, and since it can be re-used when it
-cycles we can look at any basis number we want. The engine also allows
-generating from specified TNumbers or integers, but basis generation
-is recommended because it is assured that all possible Tuplets are
-tested.
-
-
-### "Primes" 31-59 ###
-
-With the generation of the 29basis file a lot of the work of
-checking Tuplets is already done, and we know exactly where to look.
-
-Now we can do the final check to see if the possible Sextuplet (or
-quint or quad) in the 29basis file becomes a real Sextuplet or is
-altered or destroyed.
-
-To do this we only need 8 "primes". Primes is quoted because they are
-formed a bit differently than what you expect. We add 1, 7, 11, 13,
-17, 19, 23 and 29 to 30. This results in the "primes":
-
-31, 37, 41, 43, 47, 49, 53, 59
-
-You may be surprised that 49 is a "prime", but for this structure it
-actually is! Perhaps here is a good time to call these what they
-actually are: potential primes (potPrimes). Here's why.
-
-We now construct similar cycles for these primes just as we did for
-the 7-29 primes. It turns out to be a much simpler process and they
-exhibit regular behaviors and patterns.
-
-It also turns out that the potPrimes are very amenable to equations
-that can be used to "look up" their effects at any TNumber. They are
-regularly irregular or irregularly regular, can't decide which is
-better.
-
-The process we need to do in generating Tuplets is simply look up a
-possible location in the 29Basis file, which will be by TNumber, and
-then check to see if any potPrimes have an effect at that TNumber, or
-allow the Tuplet to pass on untouched, and this done by manipulating
-their look up tables.
-
-How many potPrimes need to be checked at any given TNumber is
-calculable (I call it n, it starts at 0). n0 covers all 8 of the
-potPrimes above. But, it could be that n is 1 and suddenly I've run
-out of potPrimes...
-
-This is where the potPrimes are regularly irregular. It turns out that
-61, the 9th pot prime (n=1), has exactly the same structure as 31 with
-the exception that its length is 30 greater. 91, n-2, has length 60
-greater ... this results in the potPrimes expanding as you move from
-member to member.
-
-Each potPrime has a lookup table derived from its natural progression
-through the prime templates. And the lookup table is expanded by n
-which exactly matches the expansion as one moves through members of a
-potPrime family.
-
-These look up tables, btw, are constants for each potPrime and can be
-figured out with pen and paper from the potPrimes natural progression..
-
-And so the proper definition of a PotPrime, P, is: 
-P = Pvalue + 30n
-
-For n's = 0,1,2 and potPrimes 31, 49
-
-31: 31, 61, 91
-
-49: 49, 79, 109
-
-Since we're checking by blocks, and using simple fast calculations to
-do look ups and using "Tuplet math", the entire thing is fast and
-relatively simple for reasonable n's.
-
-We are checking non-prime potPrimes, yes, but that means we leave
-nothing out by accident. It's the best scenario I have right now,
-though I continue to think about it. I have tried a couple of schemes
-to programatically weed out non-prime potPrimes and all it does is
-significantly slow the engine down.
-
-As I said, there are undiscussed details to all this, but in a
-nutshell that how this engine works.
-
+The routines do not factor out or search for primes at all. The blocks
+and structures contain patterns that can be combined to "grok" the
+entire block.
 
 ## Performance ##
 
-NOTE: A new offset calculation algorithm has decreased these times by
-about 30%.
-
-
-For the generation of basis-0 tuplets it takes about half an hour to
+For the generation of basis-0 (see pdf) tuplets it takes about 20 minutes to
 generate all possible tuplets (Sext's, Quints, and quads) but only
-about 1 minute if you filter for sextuplets only. 
+about 40 seconds if you filter for sextuplets only. 
 
 For basis-1000 (the thousand and first basis), filtered by Sextuplets
-only, it took a bit under 3 minutes:
+only, it took a bit under 2 minutes:
 
 Final counts (from TNumber 215656441028 to 215872097468)<br>
 (Natural numbers from 6469693230835 to 6476162924064)<br>
@@ -290,7 +126,7 @@ Final counts (from TNumber 215656441028 to 215872097468)<br>
 0 RQuints<br>
 0 Quads<br>
 
-When generating a basis file, individual processor cores go to 100%,
+When generating the one time 29basis file, individual processor cores go to 100%,
 but this basis generation process only takes about a minute.
 
 However, at least on my machine, the processor usage does not peg out
@@ -306,7 +142,7 @@ is not an entire basis, just a portion) in basis-86000000000
 
 This puts the sextuplets in the 10^20 range. 
 
-It found 7 Sextuplets in about 7.5 hours. Here is the prettydata
+It found 7 Sextuplets in about 5.5 hours. Here is the prettydata
 output:
 
 TNumbers from 18546453926011000028 to 18546453926100000027<br>
