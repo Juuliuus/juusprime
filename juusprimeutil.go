@@ -333,6 +333,20 @@ func valueClean(toClean, theDefault *string) {
 	}
 }
 
+//GetUserBoolChoice : wraps GetUserInput to allow various true values
+func GetUserBoolChoice(prompt, deflt string, result *bool) (canceled bool) {
+	var input string
+	*result = false
+	if input, canceled = GetUserInput(prompt, deflt, "x"); canceled {
+		return canceled
+	}
+	switch strings.ToUpper(input) {
+	case "T", "TRUE", "Y", "YES":
+		*result = true
+	}
+	return canceled
+}
+
 //GetUserInput : Good for basic input, returns the string the User enters.
 //The calling func must deal with type verification
 func GetUserInput(prompt, defaultTo, cancel string) (string, bool) {

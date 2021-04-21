@@ -141,7 +141,7 @@ func TestFindingN(t *testing.T) {
 	fmt.Sscan("2543560522035041559030", check)
 	var bigTempl *big.Int
 	bigTempl = big.NewInt(0)
-	//todo use bigger primes than 53, try 53 + (100*30)
+
 	fmt.Sscan("194091003877655194091003877655194091003877655", bigTempl)
 	GetNfromTNumComplicated(getBigInt(bigTempl), p53, i)
 	GetNfromTNum(getBigInt(bigTempl), p53, j)
@@ -614,4 +614,125 @@ func TestReverseInflation(t *testing.T) {
 
 	inflate(&sl59, p59)
 	doTest(sl59, p59)
+}
+
+//TestCritSectIDs : tests that the crit sect ID strucure's
+//methods are working properly
+func TestCritSectIDs(t *testing.T) {
+	fmt.Println("testing crit sect ID's...")
+	from := big.NewInt(0)
+	to := big.NewInt(0)
+
+	bigStr := "9873477479283747747823477665122"
+	fmt.Sscan(bigStr, from)
+	fmt.Sscan(bigStr, to)
+
+	p := NewPrimeGTE31(big.NewInt(31))
+	res := -2
+
+	test1ID := NewCritSectID(from, p)
+	test2ID := NewCritSectID(from, p)
+
+	test1ID.SetFromInt(from)
+	test2ID.SetFromInt(to)
+
+	res = test1ID.Compare(test2ID)
+	if res != 0 {
+		t.Errorf("CritSectID error, compare %v to %v wanted 0, got %v", test1ID, test2ID, res)
+	}
+
+	test2ID.SetFromInt(to.Sub(to, big1))
+	res = test1ID.Compare(test2ID)
+	if res != 1 {
+		t.Errorf("CritSectID error, compare %v to %v wanted 1, got %v", test1ID, test2ID, res)
+	}
+
+	to.Add(to, big1)
+	to.Add(to, big1)
+	test2ID.SetFromInt(to)
+	res = test1ID.Compare(test2ID)
+	if res != -1 {
+		t.Errorf("CritSectID error, compare %v to %v wanted -1, got %v", test1ID, test2ID, res)
+	}
+
+}
+
+func TestCritLen(t *testing.T) {
+	fmt.Println("testing Critical Length routines...")
+
+	GetLocalPrimes()
+
+	csid := NewCritSectID(big.NewInt(0), p31)
+	nextID := NewCritSectID(big0, p31)
+	tmpID := NewCritSectID(big.NewInt(0), p31)
+	L := big.NewInt(0)
+
+	me, next := big.NewInt(0), big.NewInt(0)
+	idx := big.NewInt(0)
+
+	doTest := func(p *PrimeGTE31, L *big.Int) {
+		tmpID.SetFromID(csid)
+		idx = tmpID.ID2Int()
+		GetEffectiveTNum(tmpID.N, primes[tmpID.SubN], me)
+
+		idx.Add(idx, big1)
+		tmpID.SetFromInt(idx)
+		GetEffectiveTNum(tmpID.N, primes[tmpID.SubN], next)
+
+		next.Sub(next, me)
+		if next.Cmp(L) != 0 {
+			t.Errorf("TestCritLen, wanted %v, got %v", L, next)
+		}
+	}
+
+	lenSL := []string{"5000", "123", "987654321", "42"}
+	idStr := ""
+	for j := range lenSL {
+		for i := 0; i < 8; i++ {
+			idStr = fmt.Sprintf("%s:%v", lenSL[j], i)
+			csid.SetFromString(idStr)
+			//The getFamilyFactoredCritLength is based to calculate from the previous
+			//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
+			nextID.SetFromID(csid)
+			nextID.Increment(1)
+			primes[nextID.SubN].getFamilyFactoredCritLength(csid.N, L)
+			doTest(primes[csid.SubN], L)
+		}
+	}
+
+}
+
+func TestCritLenForceGetN(t *testing.T) {
+	fmt.Println("testing Critical Length routines...")
+
+	GetLocalPrimes()
+	n := big.NewInt(0)
+
+	tNum := big.NewInt(0)
+
+	doTest := func(p *PrimeGTE31, theN *big.Int) {
+		GetEffectiveTNumSimple(theN, p, tNum)
+		GetNfromTNum(tNum, p, n)
+		if n.Cmp(theN) != 0 {
+			t.Errorf("TestCritLenForceGetN, wanted %v, got %v", theN, n)
+		}
+	}
+
+	lenSL := []string{"5000", "123", "987654321", "42"}
+
+	L := big.NewInt(0)
+	N := big.NewInt(0)
+	nextID := NewCritSectID(big0, p31)
+
+	for j := range lenSL {
+		fmt.Sscan(lenSL[j], L)
+		for i := range primes {
+			//The getFamilyFactoredCritLength is based to calculate from the previous
+			//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
+			nextID.SubN = int64(i)
+			nextID.Increment(1)
+			primes[nextID.SubN].getFamilyFactoredN(L, N)
+			doTest(primes[i], N)
+		}
+	}
 }

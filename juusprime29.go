@@ -33,11 +33,18 @@ type primeBase struct {
 	//to get Mod Crossings (see GetCrossNumModDirect). These are constants
 	//of each potPrime 31 and greater and are calculated, used to "unwind" TNumber offsets
 	mod30, modConst, modOffset *big.Int
+	//Another constant!, found by inspection, and leads to an even simpler
+	// GetCrossNumMod func, see  GetCrossNumModSimple
+	//it is simply: startTemplateNumber - value
+	//At this time, I confess I'm not sure why it works
+	sMinusp *big.Int
+	//These constants identify the relationship between families: ie., 31->37, 37->41, etc.
+	fam2pDiff, famStartDiff *big.Int
 }
 
 //Stringer for primeBase
 func (p *primeBase) String() string {
-	return fmt.Sprintf("P=%v\nP^2=%v\nT#=%v\nT expanded=%v\nmod30=%v\nmodConst=%v\nmodOffset=%v\n%v\n", p.value, p.valueSquared, p.startTemplateNum, TNumToInt(p.startTemplateNum), p.mod30, p.modConst, p.modOffset, p.naturalProgression)
+	return fmt.Sprintf("P=%v\nP^2=%v\nT#=%v\nT expanded=%v\nfam2pDiff=%v\nfamStartDiff=%v\nmod30=%v\nmodConst=%v\nmodOffset=%v\nsMinusp=%v\n%v\n", p.value, p.valueSquared, p.startTemplateNum, TNumToInt(p.startTemplateNum), p.fam2pDiff, p.famStartDiff, p.mod30, p.modConst, p.modOffset, p.sMinusp, p.naturalProgression)
 }
 
 //Value : Getter for a prime's value
@@ -174,6 +181,9 @@ func getPrimeBase(prime *big.Int) *primeBase {
 		mod30:              big.NewInt(0),
 		modConst:           big.NewInt(0),
 		modOffset:          big.NewInt(0),
+		sMinusp:            big.NewInt(0),
+		fam2pDiff:          big.NewInt(0),
+		famStartDiff:       big.NewInt(0),
 	}
 	r.startTemplateNum = IntToTNum(getBigInt(r.valueSquared))
 	//r.fillNaturalProgression()

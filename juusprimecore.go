@@ -20,6 +20,7 @@ func init() {
 	big1 = big.NewInt(1)
 	big2 = big.NewInt(2)
 	big5 = big.NewInt(5)
+	big8 = big.NewInt(8)
 	big19 = big.NewInt(19)
 
 	big12 = big.NewInt(12)
@@ -58,7 +59,7 @@ var (
 	fCalcFuncResult, fCalcA, fCalcB, fCalcC         *big.Float
 	bigFTemplateLength, bigF1, bigF19               *big.Float
 	currPrecision                                   uint
-	big0, big1, big2, big5, big19                   *big.Int
+	big0, big1, big2, big5, big8, big19             *big.Int
 	big12, big16, big18, big22, big24, big28, big29 *big.Int
 	//TemplateLength : This a constant used a lot in big.Int calcs, it is the length of a Template (30)
 	TemplateLength                 *big.Int
@@ -179,7 +180,7 @@ func GetEffectiveTNum(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) {
 	returnHereTNum.Add(iCalcB, iCalcC)
 }
 
-//GetEffectiveTNumSimple : "lighter" alternative to GetEffectiveTNum;
+//GetEffectiveTNumSimple : lighter alternative to GetEffectiveTNum:
 // see note in GetEffectiveTNum
 func GetEffectiveTNumSimple(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) {
 	//  result := IntToTNum( (p.value + 30n)^2 )
@@ -190,9 +191,9 @@ func GetEffectiveTNumSimple(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) 
 //GetNfromTNumComplicated : Given a TNum & PrimeGTE31 return the the n value,
 //ie. how many potential primes must be tested; Validation that givenTNum is
 //equal to or greater than p's effective start TNumber is the responsibility of the
-//calling func();
-//to complete the calculation. This comes from the first derivation of the formula and is
-//complicated in many ways (lots of roots), a simpler form was found, see GetNfromTNum
+//calling func(), to complete the calculation. This comes from the first
+//derivation of the formula and is complicated in many ways (lots of roots),
+//a simpler form was found, see GetNfromTNum, result is returned in param and in p.Helper.MaxN
 func GetNfromTNumComplicated(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 	//superceded by GetNfromTNum(), see notes below
 
@@ -229,6 +230,7 @@ func GetNfromTNumComplicated(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *b
 	//fmt.Println(fCalcB, r)
 	returnedHereN.Set(r)
 	//return r
+	p.Helper.MaxN.Set(r)
 
 	//This has been superseded by a simpler algorithm after I re-did the algebra.
 	//This is the first equation I had and is algebraically exact. It is very much
@@ -247,12 +249,12 @@ func GetNfromIntComplicated(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int
 	GetNfromTNumComplicated(IntToTNum(rNum), p, returnedHereN)
 }
 
-//GetNfromTNum : Given a TNum and a PrimeGTE31 the n value, ie. how many potential
-//primes must be tested to complete the calculation; Validation that givenTNum is
+//GetNfromTNum : Given a TNum and a PrimeGTE31 the n value, ie how many potential
+//primes must be tested to complete the calculation, Validation that givenTNum is
 //equal to or greater than p's effective start TNumber is the responsibility of the
 //calling func(); This is later derived algebraic equation
-//that turns out to be far simpler and just as accurate. The first equation was quite
-//complicated, see GetNfromTNumComplicated
+//that turns out to be far simpler and just as accurate, The first equation was quite
+//complicated, see GetNfromTNumComplicated, result is returned in param and in p.Helper.MaxN
 func GetNfromTNum(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 	//supercedes, because its simpler/faster, GetNfromTNumComplicated
 	//floor( (sqrt( ( givenTNum * cTemplateLength ) + (1 or 19) ) - value) / 30 )
@@ -284,6 +286,7 @@ func GetNfromTNum(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 	fCalcA.Quo(fCalcA, bigFTemplateLength)
 	r, _ := fCalcA.Int(nil)
 	returnedHereN.Set(r)
+	p.Helper.MaxN.Set(r)
 }
 
 //GetNfromInt : the compliment to GetNfromTNum where an Int
@@ -298,7 +301,9 @@ func GetNfromInt(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 //it uses a direct "mod" operation which then adjusts back to TNumbers crossing,
 //basically "unwrapping" the expansions; result is
 //returned in parameter; A bit less calculation and requires no floor function
-//since effectiveTNum is not required.
+//since effectiveTNum is not required, also see GetCrossNumModSimple,
+//This DOES NOT return errors if you send in too small a TNumber because this routine
+//is used very often in loops, caller needs to validate the TNumbers submitted are >= the p's startTemplateNumber
 func GetCrossNumModDirect(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod *big.Int) {
 	//R is p.value mod 30, ie. 1, 7, 11, 13, 17, 19, 23, or 29
 	//givenTNum mod (p+30n) - ((n+1)R) - K
@@ -331,13 +336,38 @@ func GetCrossNumModDirect(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossN
 
 }
 
+//GetCrossNumModSimple : Another alternative to GetCrossNumMod original, but even
+//slightly faster, found by inspection rather than derivation,
+//also see GetCrossNumModDirect,  This DOES NOT return errors if you send
+//in too small a TNumber because this routine is used very often in loops, caller needs
+//to validate the TNumbers submitted are >= the p's startTemplateNumber
+func GetCrossNumModSimple(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod *big.Int) {
+	//F is p.value mod 30, ie. 1, 7, 11, 13, 17, 19, 23, or 29
+	//p.sMinusp is another constant = p.startTemplateNumber - p.value
+	//
+	//(giveTNum - p.sMinusp - (F*n)) mod pP(n)
+
+	// get pP(n) {p+30n} into iCalcC
+	p.MemberAtN(n, iCalcC)
+
+	//(F*n)
+	iCalcB.Mul(p.Prime.mod30, n)
+
+	iCalcA.Sub(givenTNum, iCalcB)
+	iCalcA.Sub(iCalcA, p.Prime.sMinusp)
+
+	returnHereCrossNumMod.Mod(iCalcA, iCalcC)
+}
+
 //GetCrossNumMod : returns in pointer param the offset (crossing number) for the GTE 31 Prime
-//at level n at the specified given target TNumber; NOTE - After the release I realized that this
+//at level n at the specified given target TNumber, NOTE - After the release I realized that this
 //function is very poorly named and misleading; It does NOT return a crossing number, it returns
 //the relative offset of givenTNum into the prime's Natural Progression. Renaming the function
 //would require a major version number change because it would break existing code; this is the
 //original CrossNumMod function built using TNumber mod algorithms;
-//also see the newer GetCrossNumModDirect func which is simpler and faster
+//also see the newer GetCrossNumModDirect or GetCrossNumModSimple funcs which are simpler and faster,
+//This DOES NOT return errors if you send in too small a TNumber because this routine
+//is used very often in loops, caller needs to validate the TNumbers submitted are >= the p's startTemplateNumber
 func GetCrossNumMod(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossNumMod *big.Int) {
 	//givenTNum - (floor(givenTNum-effectiveTNum / p+30n) (p+30n) ) + effectiveTNum
 	GetEffectiveTNum(n, p, iCalcFuncResult)
@@ -426,7 +456,7 @@ func ShowMe(choice int, p *PrimeGTE31, b *big.Int) error {
 		if b.Cmp(big1) == -1 {
 			return fmt.Errorf("fixed N (%v) must GTE 1", b)
 		}
-		displayFullCritLengths(p, b)
+		p.DisplayFullCritLengths(b)
 	default:
 		fmt.Println("ShowMe: bad choice sent in.")
 

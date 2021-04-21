@@ -91,6 +91,8 @@ type PrimeGTE31 struct {
 	hasInsertBefore0 bool
 	//Knowing this beforehand greatly simplifies the getting N equation.
 	valueSquaredEndsIn1 bool
+	//this is the value of prime's subN within an "n", 0-7 corresponging to 31-59
+	subN int64
 }
 
 //NewPrimeGTE31 : Return a pointer to an initialized PrimeGTE31
@@ -107,6 +109,7 @@ func NewPrimeGTE31(prime *big.Int) *PrimeGTE31 {
 		Prime:   getPrimeBase(prime),
 		LookUp:  getPrimeGT30Lookup(prime),
 		CQModel: make([]*PrimeGTE31InflationModel, prime.Int64()),
+		subN:    -1,
 	}
 	for i := 0; i < len(r.CQModel); i++ {
 		r.CQModel[i] = getPrimeGTE31InflationModel()
@@ -125,9 +128,15 @@ func (prime *PrimeGTE31) String() string {
 	return fmt.Sprintf("%v", prime.Prime) +
 		fmt.Sprintf("Has insert before 0: %v\n", prime.hasInsertBefore0) +
 		fmt.Sprintf("value squared ends in 1: %v\n", prime.valueSquaredEndsIn1) +
+		fmt.Sprintf("subN (used in analysis): %v\n", prime.subN) +
 		fmt.Sprintf("CQ lookup slice:\nindex:effect:q-value:wait-value\n%s\n", CQ) +
 		fmt.Sprint("Lookup Table:\n") +
 		fmt.Sprint(prime.LookUp)
+}
+
+//Value : Getter for a prime's value
+func (prime *PrimeGTE31) SubN() int64 {
+	return prime.subN
 }
 
 //GetResultAtCrossNum : tests the GTE 31 primes at the given offset (crossing number) for the
@@ -545,7 +554,8 @@ func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 		//already and all they do is slow down the process
 		if tTarget.Cmp(prime.Prime.startTemplateNum) > -1 && curN.Cmp(finalN) < 1 {
 			//original func, slower GetCrossNumMod(tTarget, curN, prime, toTest)
-			GetCrossNumModDirect(tTarget, curN, prime, toTest)
+			//GetCrossNumModDirect(tTarget, curN, prime, toTest)
+			GetCrossNumModSimple(tTarget, curN, prime, toTest)
 			//this test uses the primes lookups, calcs there will be at least 1, at most 6, so its quick(ish)
 			if prime.GetResultAtCrossNum(&addResult, toTest, curN) {
 				inResult = AddSymbols(&inResult, &addResult)
@@ -1021,10 +1031,33 @@ func (prime *PrimeGTE31) getEffect(crossingNum int) int {
 	return CSextuplet
 }
 
+//getFamilyFactoredCritLength : Given any n returns the critical length from this
+//prime's effective start to the PREVIOUS pP's effective start, careful in usage
+//for this reason, see CritLen() func, it is based to calculate from the previous
+//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
+func (prime *PrimeGTE31) getFamilyFactoredCritLength(n, returnHereLength *big.Int) {
+	//len = (n*fam2pDiff) + famStartDiff
+	returnHereLength.Mul(n, prime.Prime.fam2pDiff)
+	returnHereLength.Add(returnHereLength, prime.Prime.famStartDiff)
+}
+
+//getFamilyFactoredN : Given a length (in TNumbers) returns in the param
+//the n required to produce that length, the returned length will be as
+//close as possible but may not be precisely the wanted length, but it
+//will (should) never be greater than the wanted length
+func (prime *PrimeGTE31) getFamilyFactoredN(len, returnHereN *big.Int) {
+	//n = (len-famStartDiff) div fam2pDiff
+	returnHereN.Sub(len, prime.Prime.famStartDiff)
+	returnHereN.Div(returnHereN, prime.Prime.fam2pDiff)
+}
+
 //InitGTE31 : fill in the appropriate data for the particular GTE 31 prime; in essence
 //these are "constants" associated with that GTE 31 prime, they can be calculated with
 //pen and paper
 func InitGTE31(prime *PrimeGTE31) {
+	//new constant which, perplexingly, makes GetCrossNumModxxx funcs slightly faster
+	prime.Prime.sMinusp.Sub(prime.Prime.startTemplateNum, prime.Prime.value)
+
 	//constants before the switch are used to unwind effects of
 	//TNumber mod arithmetic to normal mod arithmetic
 
@@ -1046,11 +1079,6 @@ func InitGTE31(prime *PrimeGTE31) {
 		idx := 0
 		for i := 0; i < len(prime.CQModel); i++ {
 			prime.CQModel[i].Q30 = val
-			/*
-				if inflate[idx] == 99 {
-					continue
-				}
-			*/
 			if inflate[idx] == i {
 				prime.CQModel[i].Wait = true
 				idx++
@@ -1064,6 +1092,13 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 31:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = true
+
+		//The following two vars are yet another way to "de-expand" expanded pP's
+		//fam2pDiff is twice the difference from one pP(0) to the next
+		//famStartDiff is the difference between Effective TNum from one pP(0) to the next
+		prime.Prime.fam2pDiff.SetInt64(4)    //x9->31 diff is 2, times 2 = 4
+		prime.Prime.famStartDiff.SetInt64(8) //Ts59 - Ts61 = 116 -> 124 = 8
+		prime.subN = fam31SubN
 
 		//See case 37 for explanation of this
 		sl := []int{24, 999}
@@ -1106,6 +1141,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 37:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+		prime.Prime.fam2pDiff.SetInt64(12)    //31->37 diff is 6, times 2 = 12
+		prime.Prime.famStartDiff.SetInt64(13) //Ts31 - Ts37 = 32 -> 45 = 13
+		prime.subN = fam37SubN
 
 		//This structure is used for reverse inflation Analysis
 		//rather than type all the structures by hand, one only needs
@@ -1152,6 +1190,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 41:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
+		prime.Prime.fam2pDiff.SetInt64(8)     //37->41 diff is 4, times 2 = 8
+		prime.Prime.famStartDiff.SetInt64(11) //Ts37 - Ts41 = 45 -> 56 = 11
+		prime.subN = fam41SubN
 
 		sl := []int{3, 6, 10, 14, 18, 21, 25, 29, 32, 36, 39, 999}
 		fillCQ(sl)
@@ -1193,6 +1234,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 43:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+		prime.Prime.fam2pDiff.SetInt64(4)    //41->43 diff is 2, times 2 = 4
+		prime.Prime.famStartDiff.SetInt64(5) //Ts41 - Ts43 = 56 -> 61 = 5
+		prime.subN = fam43SubN
 
 		sl := []int{1, 4, 8, 11, 14, 17, 21, 24, 27, 31, 34, 37, 41, 999}
 		fillCQ(sl)
@@ -1234,6 +1278,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 47:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+		prime.Prime.fam2pDiff.SetInt64(8)     //43->47 diff is 4, times 2 = 8
+		prime.Prime.famStartDiff.SetInt64(12) //Ts43 - Ts47 = 61 -> 73 = 12
+		prime.subN = fam47SubN
 
 		sl := []int{1, 4, 6, 9, 12, 15, 17, 20, 23, 26, 28, 31, 34, 37, 40, 42, 45, 999}
 		fillCQ(sl)
@@ -1275,6 +1322,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 49:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
+		prime.Prime.fam2pDiff.SetInt64(4)    //47->49 diff is 2, times 2 = 4
+		prime.Prime.famStartDiff.SetInt64(7) //Ts47 - Ts49 = 73 -> 80 = 7
+		prime.subN = fam49SubN
 
 		sl := []int{2, 4, 7, 9, 12, 15, 17, 20, 22, 25, 28, 30, 33, 35, 38, 40, 43, 46, 47, 999}
 		fillCQ(sl)
@@ -1316,6 +1366,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 53:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
+		prime.Prime.fam2pDiff.SetInt64(8)     //49->53 diff is 4, times 2 = 8
+		prime.Prime.famStartDiff.SetInt64(13) //Ts49 - Ts53 = 80 -> 93 = 13
+		prime.subN = fam53SubN
 
 		sl := []int{1, 3, 5, 8, 10, 12, 15, 17, 19, 21, 24, 26, 28, 31, 33, 35, 38, 40, 42, 45, 47, 49, 51, 999}
 		fillCQ(sl)
@@ -1357,6 +1410,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 59:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
+		prime.Prime.fam2pDiff.SetInt64(12)    //53->59 diff is 6, times 2 = 12
+		prime.Prime.famStartDiff.SetInt64(23) //Ts53 - Ts59 = 93 -> 116 = 23
+		prime.subN = fam59SubN
 
 		sl := []int{1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 57, 999}
 		fillCQ(sl)
@@ -1396,4 +1452,123 @@ func InitGTE31(prime *PrimeGTE31) {
 			}
 		}
 	}
+}
+
+//GetCritLength : analysis use, critlen here is only between members
+//of the same family, see GetCritLen for between families,
+//given fixedN (a chosen, fixed n level),
+//and n the n-level you want to compare to, calculate the number of
+//Templates between them; prime is a *PrimeGTE31, and
+//abs flag is whether to return the absolute value, result is returned in last parameter
+func (prime *PrimeGTE31) GetCritLength(abs bool, fixedN, n, returnHereLen *big.Int) error {
+	// d( 2p + cd + 2cN ) d, diff; p, prime value; c=30; N a fixed chosen "n"
+	returnHereLen.SetInt64(0)
+	if n.Cmp(big0) < 0 {
+		return fmt.Errorf("GetCritLength: target n (%v) must be GTE 0", n)
+	}
+
+	d := big.NewInt(0).Sub(n, fixedN)
+
+	p2 := big.NewInt(0).Mul(prime.Prime.value, big2)
+	cd := big.NewInt(0).Mul(d, TemplateLength)
+	cN2 := big.NewInt(0).Mul(fixedN, TemplateLength)
+	cN2.Mul(cN2, big2)
+
+	//sum
+	p2.Add(p2, cd)
+	p2.Add(p2, cN2)
+
+	//d(sum)
+	returnHereLen.Mul(d, p2)
+	if abs {
+		returnHereLen.Abs(returnHereLen)
+	}
+	return nil
+}
+
+//GetCritLengthByDiff : analysis use, critlen here is only between members
+//of the same family, return the total number of Templates for
+//potPrime p between fromN and toN, toN can be less than fromN, if
+//abs is true return the length's absolute value, result returned in last param,
+func (prime *PrimeGTE31) GetCritLengthByDiff(abs bool, N, diff, returnHereLen *big.Int) error {
+	returnHereLen.SetInt64(-1)
+	if N.Cmp(big0) == -1 {
+		return fmt.Errorf("GetCritLengthByDiffWF: desired N (%v) must be 0 or greater", N)
+	}
+	n := big.NewInt(0).Add(N, diff)
+	if n.Cmp(big0) == -1 {
+		return fmt.Errorf("GetCritLengthByDiffWF: your diff (%v) combined with N (%v) will go below 0", diff, N)
+	}
+	return prime.GetCritLength(abs, N, n, returnHereLen)
+}
+
+//DisplayFullCritLengths : analysis use, testing, checking
+//Will show first from 0 to fixedN-1, then from fixedN+1 to 0
+//the number of Templates between each diff of fixedN +/- n
+//and will also display the appropriate offsets of each n level to the fixedN
+//border, careful, large fixedN means lots and lots of output
+func (prime *PrimeGTE31) DisplayFullCritLengths(fixedN *big.Int) {
+	iter := big.NewInt(0).Set(fixedN)
+
+	N := big.NewInt(0)
+	nctrl := big.NewInt(0)
+	res := big.NewInt(0)
+
+	mod := big.NewInt(0)
+	pp := big.NewInt(0)
+
+	iCalcA.Add(N, iter)
+	iCalcA.Add(iCalcA, big1)
+
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 1)
+
+	prime.MemberAtN(iter, pp)
+	fmt.Println(fmt.Sprintf("distances in TNumbers between n's for potPrime %v at N=%v (%v)",
+		prime.Prime.value, iter, pp))
+
+	prime.MemberAtN(iCalcA, pp)
+	fmt.Println(fmt.Sprintf("from N=%v (%v) to N+%v (%v) [inclusive]", N, prime.Prime.value, iCalcA, pp))
+
+	fmt.Println(fmt.Sprintf("Offset (o) is for potprime value %v", prime.Prime.value))
+
+	for nctrl.Cmp(iter) < 1 {
+		nctrl.Add(nctrl, big1)
+		prime.GetCritLength(true, N, nctrl, res)
+
+		prime.MemberAtN(nctrl, pp)
+		mod.Mod(res, prime.Prime.value)
+		mod.Sub(mod, big1)
+
+		fmt.Fprintf(w, "N=%v (%v) to n=%v (%v) length =\t %v\t   o=%v\n", N, prime.Prime.value, nctrl, pp, res, mod)
+	}
+	w.Flush()
+
+	fmt.Println("-------------")
+	prime.MemberAtN(iter, pp)
+	fmt.Println(fmt.Sprintf("from N=%v (%v) to N-%v (%v)", iter, pp, iter, prime.Prime.value))
+
+	fmt.Println("Offset (o) is for current potprime at n at the border of N")
+
+	N.Set(iter)
+	nctrl.Set(N)
+
+	prime.MemberAtN(N, pp)
+	frompp := big.NewInt(0).Set(pp)
+
+	cmp := big.NewInt(0).Sub(N, iter)
+	for nctrl.Cmp(cmp) > 0 {
+		nctrl.Sub(nctrl, big1)
+		err := prime.GetCritLength(true, N, nctrl, res)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		prime.MemberAtN(nctrl, pp)
+		mod.Mod(res, pp)
+		mod.Sub(mod, big1)
+
+		fmt.Fprintf(w, "n=%v (%v) to n=%v (%v) length =\t %v\t   o (%v)=%v\n",
+			N, frompp, nctrl, pp, res, pp, mod)
+	}
+	w.Flush()
 }
