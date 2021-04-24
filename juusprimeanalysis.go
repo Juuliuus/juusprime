@@ -77,38 +77,22 @@ func GetCritLengthByDiff(abs bool, p *PrimeGTE31, N, diff, returnHereLen *big.In
 }
 
 //CritLen : get the true critical length (between families), length is returned
-//in the return param, it is oriented such that it gives the length from the CritSectID's SubN
-//to the next pP family effecive start at the CritSectID's N, also see CritLenForceGetN()
+//in the return param,  also see CritLenForceGetN()
 func CritLen(csid *CritSectID, returnHereLen *big.Int) {
 	//TODO: look at this, can it be adjusted for like the within Family:  d( 2p + cd + 2cN )???
 	GetLocalPrimes()
-
-	//The getFamilyFactoredCritLength is based to calculate from the previous
-	//pP family so, eg, to get length of a 31 true crit sect at N use 37's func, etc
-	//add 1 to the SubN and mod by 8 to get the next pP...
-
-	nextID := NewCritSectID(big0, p31)
-	nextID.SetFromID(csid)
-	nextID.Increment(1)
-	primes[nextID.SubN].getFamilyFactoredCritLength(csid.N, returnHereLen)
+	primes[csid.SubN].getFamilyFactoredCritLength(csid.N, returnHereLen)
 }
 
 //CritLenForceGetN : complement to CritLen(), given a length (in TNumbers) returns
 //in the return param the n needed to get as close as possible to the provided
 //given length, e.g., given the length of the 29Baseis (215656441) returns the n
-//where the prime's critical length is begins exceeding a complete Basis
+//where the prime's critical length begins exceeding a complete Basis
 func CritLenForceGetN(p *PrimeGTE31, len, returnHereN *big.Int) {
-
 	GetLocalPrimes()
-
-	//The getFamilyFactoredCritLength is based to calculate from the previous
-	//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
-	//add 1 to the SubN and mod by 8 to get the next pP...
-
-	//n for this function is unimportant, only subN
-	nextID := NewCritSectID(big0, p)
-	nextID.Increment(1)
-	primes[nextID.SubN].getFamilyFactoredN(len, returnHereN)
+	//n for this function is unimportant, only subN, this converts int type for us
+	ID := NewCritSectID(big0, p)
+	primes[ID.SubN].getFamilyFactoredN(len, returnHereN)
 }
 
 //sextPositions : used in the testIsSextuplet() func

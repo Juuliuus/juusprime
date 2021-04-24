@@ -1032,9 +1032,7 @@ func (prime *PrimeGTE31) getEffect(crossingNum int) int {
 }
 
 //getFamilyFactoredCritLength : Given any n returns the critical length from this
-//prime's effective start to the PREVIOUS pP's effective start, careful in usage
-//for this reason, see CritLen() func, it is based to calculate from the previous
-//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
+//prime's effective start to the next pP's effective start,  see CritLen() func
 func (prime *PrimeGTE31) getFamilyFactoredCritLength(n, returnHereLength *big.Int) {
 	//len = (n*fam2pDiff) + famStartDiff
 	returnHereLength.Mul(n, prime.Prime.fam2pDiff)
@@ -1096,8 +1094,8 @@ func InitGTE31(prime *PrimeGTE31) {
 		//The following two vars are yet another way to "de-expand" expanded pP's
 		//fam2pDiff is twice the difference from one pP(0) to the next
 		//famStartDiff is the difference between Effective TNum from one pP(0) to the next
-		prime.Prime.fam2pDiff.SetInt64(4)    //x9->31 diff is 2, times 2 = 4
-		prime.Prime.famStartDiff.SetInt64(8) //Ts59 - Ts61 = 116 -> 124 = 8
+		prime.Prime.fam2pDiff.SetInt64(12)    //31->37 diff is 6, times 2 = 12
+		prime.Prime.famStartDiff.SetInt64(13) //Ts31 - Ts37 = 32 -> 45 = 13
 		prime.subN = fam31SubN
 
 		//See case 37 for explanation of this
@@ -1141,8 +1139,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 37:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
-		prime.Prime.fam2pDiff.SetInt64(12)    //31->37 diff is 6, times 2 = 12
-		prime.Prime.famStartDiff.SetInt64(13) //Ts31 - Ts37 = 32 -> 45 = 13
+		prime.Prime.fam2pDiff.SetInt64(8)     //37->41 diff is 4, times 2 = 8
+		prime.Prime.famStartDiff.SetInt64(11) //Ts37 - Ts41 = 45 -> 56 = 11
+
 		prime.subN = fam37SubN
 
 		//This structure is used for reverse inflation Analysis
@@ -1190,8 +1189,9 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 41:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
-		prime.Prime.fam2pDiff.SetInt64(8)     //37->41 diff is 4, times 2 = 8
-		prime.Prime.famStartDiff.SetInt64(11) //Ts37 - Ts41 = 45 -> 56 = 11
+		prime.Prime.fam2pDiff.SetInt64(4)    //41->43 diff is 2, times 2 = 4
+		prime.Prime.famStartDiff.SetInt64(5) //Ts41 - Ts43 = 56 -> 61 = 5
+
 		prime.subN = fam41SubN
 
 		sl := []int{3, 6, 10, 14, 18, 21, 25, 29, 32, 36, 39, 999}
@@ -1234,8 +1234,8 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 43:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
-		prime.Prime.fam2pDiff.SetInt64(4)    //41->43 diff is 2, times 2 = 4
-		prime.Prime.famStartDiff.SetInt64(5) //Ts41 - Ts43 = 56 -> 61 = 5
+		prime.Prime.fam2pDiff.SetInt64(8)     //43->47 diff is 4, times 2 = 8
+		prime.Prime.famStartDiff.SetInt64(12) //Ts43 - Ts47 = 61 -> 73 = 12
 		prime.subN = fam43SubN
 
 		sl := []int{1, 4, 8, 11, 14, 17, 21, 24, 27, 31, 34, 37, 41, 999}
@@ -1278,8 +1278,8 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 47:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
-		prime.Prime.fam2pDiff.SetInt64(8)     //43->47 diff is 4, times 2 = 8
-		prime.Prime.famStartDiff.SetInt64(12) //Ts43 - Ts47 = 61 -> 73 = 12
+		prime.Prime.fam2pDiff.SetInt64(4)    //47->49 diff is 2, times 2 = 4
+		prime.Prime.famStartDiff.SetInt64(7) //Ts47 - Ts49 = 73 -> 80 = 7
 		prime.subN = fam47SubN
 
 		sl := []int{1, 4, 6, 9, 12, 15, 17, 20, 23, 26, 28, 31, 34, 37, 40, 42, 45, 999}
@@ -1322,8 +1322,8 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 49:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
-		prime.Prime.fam2pDiff.SetInt64(4)    //47->49 diff is 2, times 2 = 4
-		prime.Prime.famStartDiff.SetInt64(7) //Ts47 - Ts49 = 73 -> 80 = 7
+		prime.Prime.fam2pDiff.SetInt64(8)     //49->53 diff is 4, times 2 = 8
+		prime.Prime.famStartDiff.SetInt64(13) //Ts49 - Ts53 = 80 -> 93 = 13
 		prime.subN = fam49SubN
 
 		sl := []int{2, 4, 7, 9, 12, 15, 17, 20, 22, 25, 28, 30, 33, 35, 38, 40, 43, 46, 47, 999}
@@ -1366,8 +1366,8 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 53:
 		prime.hasInsertBefore0 = false
 		prime.valueSquaredEndsIn1 = false
-		prime.Prime.fam2pDiff.SetInt64(8)     //49->53 diff is 4, times 2 = 8
-		prime.Prime.famStartDiff.SetInt64(13) //Ts49 - Ts53 = 80 -> 93 = 13
+		prime.Prime.fam2pDiff.SetInt64(12)    //53->59 diff is 6, times 2 = 12
+		prime.Prime.famStartDiff.SetInt64(23) //Ts53 - Ts59 = 93 -> 116 = 23
 		prime.subN = fam53SubN
 
 		sl := []int{1, 3, 5, 8, 10, 12, 15, 17, 19, 21, 24, 26, 28, 31, 33, 35, 38, 40, 42, 45, 47, 49, 51, 999}
@@ -1410,8 +1410,8 @@ func InitGTE31(prime *PrimeGTE31) {
 	case 59:
 		prime.hasInsertBefore0 = true
 		prime.valueSquaredEndsIn1 = true
-		prime.Prime.fam2pDiff.SetInt64(12)    //53->59 diff is 6, times 2 = 12
-		prime.Prime.famStartDiff.SetInt64(23) //Ts53 - Ts59 = 93 -> 116 = 23
+		prime.Prime.fam2pDiff.SetInt64(4)    //x9->31 diff is 2, times 2 = 4
+		prime.Prime.famStartDiff.SetInt64(8) //Ts59 - Ts61 = 116 -> 124 = 8
 		prime.subN = fam59SubN
 
 		sl := []int{1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 57, 999}

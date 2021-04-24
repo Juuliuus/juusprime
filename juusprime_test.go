@@ -663,7 +663,6 @@ func TestCritLen(t *testing.T) {
 	GetLocalPrimes()
 
 	csid := NewCritSectID(big.NewInt(0), p31)
-	nextID := NewCritSectID(big0, p31)
 	tmpID := NewCritSectID(big.NewInt(0), p31)
 	L := big.NewInt(0)
 
@@ -691,15 +690,10 @@ func TestCritLen(t *testing.T) {
 		for i := 0; i < 8; i++ {
 			idStr = fmt.Sprintf("%s:%v", lenSL[j], i)
 			csid.SetFromString(idStr)
-			//The getFamilyFactoredCritLength is based to calculate from the previous
-			//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
-			nextID.SetFromID(csid)
-			nextID.Increment(1)
-			primes[nextID.SubN].getFamilyFactoredCritLength(csid.N, L)
+			primes[csid.SubN].getFamilyFactoredCritLength(csid.N, L)
 			doTest(primes[csid.SubN], L)
 		}
 	}
-
 }
 
 func TestCritLenForceGetN(t *testing.T) {
@@ -722,17 +716,35 @@ func TestCritLenForceGetN(t *testing.T) {
 
 	L := big.NewInt(0)
 	N := big.NewInt(0)
-	nextID := NewCritSectID(big0, p31)
 
 	for j := range lenSL {
 		fmt.Sscan(lenSL[j], L)
 		for i := range primes {
-			//The getFamilyFactoredCritLength is based to calculate from the previous
-			//pP family...so, eg., to get length of a 31 true crit sect at N use 37's func, etc.
-			nextID.SubN = int64(i)
-			nextID.Increment(1)
-			primes[nextID.SubN].getFamilyFactoredN(L, N)
+			primes[i].getFamilyFactoredN(L, N)
 			doTest(primes[i], N)
+		}
+	}
+}
+
+func TestCrossNumMod(t *testing.T) {
+	//test all three methods of GetCrossNumMod for agreement
+
+	fmt.Println("testing GetCrossNumMod routines...")
+
+	GetLocalPrimes()
+
+	tNum, n := big.NewInt(31), big.NewInt(0)
+	resO, resD, resS := big.NewInt(31), big.NewInt(0), big.NewInt(0)
+	sl := []string{"200", "123", "10000", "456", "12345678987654321"}
+	for idx := range primes {
+		for i := range sl {
+			fmt.Sscan(sl[i], tNum)
+			GetCrossNumModSimple(tNum, n, primes[idx], resS)
+			GetCrossNumModDirect(tNum, n, primes[idx], resD)
+			GetCrossNumMod(tNum, n, primes[idx], resO)
+			if resS.Cmp(resD) != 0 || resD.Cmp(resO) != 0 {
+				t.Errorf("TestCrossNumMod, disagreement in values, got %v %v %v", resS, resD, resO)
+			}
 		}
 	}
 }
