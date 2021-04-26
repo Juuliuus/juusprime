@@ -185,7 +185,7 @@ func AnalyzeCritSectByTNumber(tTarget *big.Int, details bool) {
 	//also properly handles the movement from a n=3 59 to a n=4 31
 
 	highestPrime = (highestPrime + 1) % 8 //keep it in range of 0-7
-	primes[highestPrime].Helper.MaxN.Add(maxN, big1)
+	primes[highestPrime].Helper.MaxN.Add(primes[highestPrime].Helper.MaxN, big1)
 	//fmt.Println("highestPrime2=", highestPrime)
 
 	GetEffectiveTNum(primes[highestPrime].Helper.MaxN, primes[highestPrime], to)
