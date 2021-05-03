@@ -74,7 +74,7 @@ const (
 
 //GenPrimesStruct : A structure that can be filled in to control
 //prime generation (both LTE 29's and GTE 31's, though the usage is
-//slightly different); for GTE 31's it will call its Prepare() method
+//slightly different), for GTE 31's it will call its Prepare() method
 //which adjusts parameters based on OpMode and returns a proper filename
 type GenPrimesStruct struct {
 	BasisNum            *big.Int
@@ -91,8 +91,8 @@ type GenPrimesStruct struct {
 }
 
 //Prepare : Method for GenPrimesStruct which takes the OpMode
-//and prepares proper settings; it returns a proper filename and fullpath;
-//Always used for GTE 31's, LTE 29's are special and handled slightly differently;
+//and prepares proper settings, it returns a proper filename and fullpath,
+//Always used for GTE 31's, LTE 29's are special and handled slightly differently,
 //Generally no need to call this, it is done automatically when generating Tuplets
 func (ctrl *GenPrimesStruct) Prepare() (fileName string) {
 	switch ctrl.OpMode {
@@ -144,7 +144,7 @@ func NewGenPrimesStruct() *GenPrimesStruct {
 	}
 }
 
-//AdjustTNumsForFilename : used to keep filename lengths under control;
+//AdjustTNumsForFilename : used to keep filename lengths under control,
 //if the incoming TNumber or basis (n) is bigger than 9999999999999999999999999999999
 //it returns an md5 hash, otherwise returns the string representation of the
 //incoming number
@@ -189,7 +189,7 @@ func GetEffectiveTNumSimple(n *big.Int, p *PrimeGTE31, returnHereTNum *big.Int) 
 }
 
 //GetNfromTNumComplicated : Given a TNum & PrimeGTE31 return the the n value,
-//ie. how many potential primes must be tested; Validation that givenTNum is
+//ie. how many potential primes must be tested, Validation that givenTNum is
 //equal to or greater than p's effective start TNumber is the responsibility of the
 //calling func(), to complete the calculation. This comes from the first
 //derivation of the formula and is complicated in many ways (lots of roots),
@@ -252,7 +252,7 @@ func GetNfromIntComplicated(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int
 //GetNfromTNum : Given a TNum and a PrimeGTE31 the n value, ie how many potential
 //primes must be tested to complete the calculation, Validation that givenTNum is
 //equal to or greater than p's effective start TNumber is the responsibility of the
-//calling func(); This is later derived algebraic equation
+//calling func(), This is later derived algebraic equation
 //that turns out to be far simpler and just as accurate, The first equation was quite
 //complicated, see GetNfromTNumComplicated, result is returned in param and in p.Helper.MaxN
 func GetNfromTNum(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
@@ -291,7 +291,7 @@ func GetNfromTNum(givenTNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 
 //GetNfromInt : the compliment to GetNfromTNum where an Int
 //(regular number line value) is used, rather than an already known Template Number.
-//rNum is a "real" number, ie. a number line integer, not a Template Number; p is
+//rNum is a "real" number, ie. a number line integer, not a Template Number, p is
 //is a potential prime of type PrimeGTE31
 func GetNfromInt(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 	GetNfromTNum(IntToTNum(rNum), p, returnedHereN)
@@ -299,8 +299,8 @@ func GetNfromInt(rNum *big.Int, p *PrimeGTE31, returnedHereN *big.Int) {
 
 //GetCrossNumModDirect : An alternative to GetCrossNumMod original,
 //it uses a direct "mod" operation which then adjusts back to TNumbers crossing,
-//basically "unwrapping" the expansions; result is
-//returned in parameter; A bit less calculation and requires no floor function
+//basically "unwrapping" the expansions, result is
+//returned in parameter, A bit less calculation and requires no floor function
 //since effectiveTNum is not required, also see GetCrossNumModSimple,
 //This DOES NOT return errors if you send in too small a TNumber because this routine
 //is used very often in loops, caller needs to validate the TNumbers submitted are >= the p's startTemplateNumber
@@ -361,10 +361,10 @@ func GetCrossNumModSimple(givenTNum, n *big.Int, p *PrimeGTE31, returnHereCrossN
 
 //GetCrossNumMod : returns in pointer param the offset (crossing number) for the GTE 31 Prime
 //at level n at the specified given target TNumber, NOTE - After the release I realized that this
-//function is very poorly named and misleading; It does NOT return a crossing number, it returns
+//function is very poorly named and misleading, It does NOT return a crossing number, it returns
 //the relative offset of givenTNum into the prime's Natural Progression. Renaming the function
-//would require a major version number change because it would break existing code; this is the
-//original CrossNumMod function built using TNumber mod algorithms;
+//would require a major version number change because it would break existing code, this is the
+//original CrossNumMod function built using TNumber mod algorithms,
 //also see the newer GetCrossNumModDirect or GetCrossNumModSimple funcs which are simpler and faster,
 //This DOES NOT return errors if you send in too small a TNumber because this routine
 //is used very often in loops, caller needs to validate the TNumbers submitted are >= the p's startTemplateNumber
@@ -403,7 +403,7 @@ func IntToTNum(rNum *big.Int) *big.Int {
 }
 
 //BasisToTNumRange : basis is 0 based, results are set directly to passed
-//in param pointers; results are the beginning and ending TNumbers for the
+//in param pointers, results are the beginning and ending TNumbers for the
 //specified basis
 func BasisToTNumRange(basis, returnHereBegin, returnHereEnd *big.Int) {
 	//tNumBeg = basisBeg + (basisLen * basisNum)
@@ -436,7 +436,7 @@ func IntToBasisNum(anInt, returnHereBasisNum *big.Int) error {
 	return nil
 }
 
-//getBigInt : helper func to get fresh initialized *big.Int;
+//getBigInt : helper func to get fresh initialized *big.Int,
 //particularly useful when passing big.Int's as params & it
 //is =NOT= limited to int64.
 func getBigInt(initTo *big.Int) *big.Int {

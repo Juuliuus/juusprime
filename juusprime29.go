@@ -15,7 +15,7 @@ import (
 //Outside of experimentation there is no need for primes other than these in this unit
 var primeLTE29AllowedVals = []int64{7, 11, 13, 17, 19, 23, 29}
 
-//PrimeIF : interface for the prime struct's and useful methods;
+//PrimeIF : interface for the prime struct's and useful methods,
 //experimental, needs to be developed
 type PrimeIF interface {
 	//GetLookupEffect()
@@ -68,7 +68,7 @@ func (p *primeBase) NaturalProgression() []*big.Int {
 }
 
 //NaturalProgressionAtIndex : Getter for a an individual value of a
-//prime's naturalProgression; caller is responsible to keep idx's in range
+//prime's naturalProgression, caller is responsible to keep idx's in range
 func (p *primeBase) NaturalProgressionAtIndex(idx int, returnMe *big.Int) error {
 	if idx < 0 || idx >= len(p.naturalProgression) {
 		returnMe.Set(big0)
@@ -78,8 +78,8 @@ func (p *primeBase) NaturalProgressionAtIndex(idx int, returnMe *big.Int) error 
 	return nil
 }
 
-//NaturalProgressionAtIdx : Deprecated, use NaturalProgressionAtIndex; Getter for a an individual value of a
-//prime's naturalProgression; caller is responsible to keep idx's in range
+//NaturalProgressionAtIdx : Deprecated, use NaturalProgressionAtIndex, Getter for a an individual value of a
+//prime's naturalProgression, caller is responsible to keep idx's in range
 func (p *primeBase) NaturalProgressionAtIdx(idx int) (*big.Int, error) {
 	if idx < 0 || idx >= len(p.naturalProgression) {
 		return getBigInt(big0), fmt.Errorf("idx %v out of bounds", idx)
@@ -115,7 +115,7 @@ func (p *primeBase) fillNaturalProgression() {
 	}
 }
 
-//GetNaturalProgressionIdx : internal use only; used only in specific
+//GetNaturalProgressionIdx : internal use only, used only in specific
 //situations for LTE 29's
 func (p *primeBase) GetNaturalProgressionIdx(tNumber *big.Int) int {
 	cNum := CrossingAtTNumMod(p.value, tNumber)
@@ -127,8 +127,8 @@ func (p *primeBase) GetNaturalProgressionIdx(tNumber *big.Int) int {
 	return -1
 }
 
-//getCrossingNumber : internal use only and of limited usefulness;
-//used only in showing "raw" details for GTE 31s; from older pascal code
+//getCrossingNumber : internal use only and of limited usefulness,
+//used only in showing "raw" details for GTE 31s, from older pascal code
 //could be refactored?
 func (p *primeBase) getCrossingNumber(naturalProgressionIdx int) *big.Int {
 	return p.naturalProgression[naturalProgressionIdx]
@@ -171,7 +171,7 @@ func checkPrimeValues(prime *big.Int, fromLTE29 bool) bool {
 }
 
 //getPrimeBase : common function returning a pointer to an
-//intialized primeBase struct. prime is the value the Prime struct will use;
+//intialized primeBase struct. prime is the value the Prime struct will use,
 //used internally when creating the various juusprime Primes
 func getPrimeBase(prime *big.Int) *primeBase {
 	r := &primeBase{
@@ -228,7 +228,7 @@ func (p *primeBase) Repurpose (prime *big.Int) {
 }
 */
 
-//fillNatProg : Interface version, currently just for testing and development;
+//fillNatProg : Interface version, currently just for testing and development,
 //It currently has no valid use case but I am dipping a toe in the interface
 //waters..
 func fillNatProg(p PrimeIF) {
@@ -237,8 +237,8 @@ func fillNatProg(p PrimeIF) {
 
 //GetEffect : Given the prime's crossing number return the effect the
 //crossing has for that Template Number. These are "constants" in the
-//sense that for each prime the patterns repeat forever; These numbers came
-//from on paper analysis; We assumes it is being compared to the 2,3,5 template
+//sense that for each prime the patterns repeat forever, These numbers came
+//from on paper analysis, We assumes it is being compared to the 2,3,5 template
 //and, so, against a Sextuplet
 func (prime *PrimeLTE29) GetEffect(crossingNum *big.Int) int {
 	switch prime.Prime.value.Int64() {
@@ -377,7 +377,7 @@ func (prime *PrimeLTE29) ShowDetails(withPausing bool) {
 }
 
 //GeneratePrimes7to23 : Trivial output, but important as sanity check
-//that the routines give back the correct effects; The primes 7 to 23
+//that the routines give back the correct effects, The primes 7 to 23
 //cannot be generated using the general methods I've written, this func
 //prints them out for completeness, but they are not for use in any further
 //routines or analysis
@@ -417,7 +417,7 @@ func GeneratePrimes7to23() {
 	}
 	defer FileClose(infoF)
 
-	//closure; the starting position of a primes effects are staggered
+	//closure, the starting position of a primes effects are staggered
 	//so this func takes that into account.
 	adder := func(prime *PrimeLTE29) func(*big.Int) {
 		cs := controlStruct{idx: 0, size: int(prime.Prime.value.Int64())}
@@ -495,8 +495,8 @@ func GenerateBasis() {
 }
 
 //GenerateBasisInteractive : Interactive func to take user input and generate 29Basis
-//files; generally one only needs the "no filter" version, but one is allowed
-//to choose other varieties; recommended to always use default ranges unless
+//files, generally one only needs the "no filter" version, but one is allowed
+//to choose other varieties, recommended to always use default ranges unless
 //you are completely comfortable with juusprimes and filtering
 func GenerateBasisInteractive() {
 
@@ -576,9 +576,9 @@ func GenerateBasisInteractive() {
 
 }
 
-//GenerateBasis29 : The engine func that generates 29Basis files; it can
+//GenerateBasis29 : The engine func that generates 29Basis files, it can
 //be called with a GenPrimesStruct already filled in if you are comfortable
-//with that; otherwise recommended to use GenerateBasisInteractive()
+//with that, otherwise recommended to use GenerateBasisInteractive()
 func GenerateBasis29(ctrl *GenPrimesStruct, f *os.File) {
 
 	if ctrl.From == nil || ctrl.To == nil {
@@ -629,7 +629,7 @@ func GenerateBasis29(ctrl *GenPrimesStruct, f *os.File) {
 	getControlStruct := func(prime *PrimeLTE29) *controlStruct {
 		result := &controlStruct{
 			//in order to bail out (continue) if effect is "X" (ie, possibility killed/destroyed) then
-			//Need to increment at TOP of the loop, hence the " - 1";
+			//Need to increment at TOP of the loop, hence the " - 1"
 			idx:  prime.Prime.GetNaturalProgressionIdx(ctrl.From) - 1,
 			size: int(prime.Prime.value.Int64()),
 			p:    prime,
@@ -737,8 +737,8 @@ func GenerateBasis29(ctrl *GenPrimesStruct, f *os.File) {
 }
 
 //Basis29RangeTNum : func that returns the start/end values, in TNumbers,
-//of a 29Basis range; not used, primarily here so that an interested person
-//can see how they were determined; The pattern then begins again and
+//of a 29Basis range, not used, primarily here so that an interested person
+//can see how they were determined, The pattern then begins again and
 //repeats to infinity
 func Basis29RangeTNum() (startTNum, endTNum int) {
 	startTNum = 28 //constant, 28 is the starttemplate of Prime 29
@@ -767,7 +767,7 @@ func (prime *PrimeLTE29) ShowRawDetails() {
 }
 
 //CrossingAtTNumCountingNumber : Given the Prime and TemplateNum, return
-//the crossing number in Counting number format (starting at 1); only for
+//the crossing number in Counting number format (starting at 1), only for
 //humans preferring counting numbers rather than mod results, do not use
 //in calculations!
 func CrossingAtTNumCountingNumber(prime, tNum *big.Int) *big.Int {
@@ -776,7 +776,7 @@ func CrossingAtTNumCountingNumber(prime, tNum *big.Int) *big.Int {
 }
 
 //CrossingAtTNumExpandedCountingNumber : Given the Prime and TemplateNum expanded to int, return
-//the crossing number in Counting number format (starting at 1); only for
+//the crossing number in Counting number format (starting at 1), only for
 //humans preferring counting numbers rather than mod results, do not use
 //in calculations!
 func CrossingAtTNumExpandedCountingNumber(prime, tNumExpanded *big.Int) *big.Int {
@@ -785,7 +785,7 @@ func CrossingAtTNumExpandedCountingNumber(prime, tNumExpanded *big.Int) *big.Int
 }
 
 //CrossingAtTNumExpandedMod : Given the Prime and a TemplateNum expanded to number line integer,
-//return the crossing number in mod format (starting at 0); Key function for this package
+//return the crossing number in mod format (starting at 0), Key function for this package
 func CrossingAtTNumExpandedMod(prime, tNumExpanded *big.Int) *big.Int {
 	//	return (prime - (tNumExpanded % prime)) % prime
 	iCalcA.Mod(tNumExpanded, prime)
@@ -794,7 +794,7 @@ func CrossingAtTNumExpandedMod(prime, tNumExpanded *big.Int) *big.Int {
 }
 
 //CrossingAtTNumMod : Given the Prime and TemplateNum return
-//the crossing number; Key function for this package; "prime" is
+//the crossing number, Key function for this package, "prime" is
 //not necessarily a prime #, but a potentially prime #
 func CrossingAtTNumMod(prime, tNum *big.Int) *big.Int {
 	//	return (prime - (TNumToInt(tNum) % prime)) % prime

@@ -367,8 +367,8 @@ func AddSymbols(symbol1, symbol2 *int) int {
 	return CXNoTrack
 }
 
-//SymbolIsOfInterest : basic filtering func; rejects any
-//thing that is not a Tuple; only used in GeneratePrimes7to23()
+//SymbolIsOfInterest : basic filtering func, rejects any
+//thing that is not a Tuple, only used in GeneratePrimes7to23()
 func SymbolIsOfInterest(symbol int) bool {
 	if symbol <= CQuad {
 		return true

@@ -101,7 +101,7 @@ func getPrimeGTE31InflationModel() *PrimeGTE31InflationModel {
 
 //PrimeGTE31 : Structure to use for primes greater than or equal to 31,
 //the sextuplet program only uses this for primes 31, 37, 41, 43, 47, "49",
-//53, and 59; there are no need for others since these can do the checking
+//53, and 59, there are no need for others since these can do the checking
 //for sextuplets via lookups all the way out to infinity + 1
 type PrimeGTE31 struct {
 	Helper  *PrimeHelper
@@ -162,7 +162,7 @@ func (prime *PrimeGTE31) SubN() int64 {
 }
 
 //GetResultAtCrossNum : tests the GTE 31 primes at the given offset (crossing number) for the
-//applicable effect; addResult is changed and will be accumulated in the calling
+//applicable effect, addResult is changed and will be accumulated in the calling
 //function, n is the current n-level (0 based) one is testing, offset is calculated by
 //GetCrossNumModDirect() or GetCrossNumMod()
 func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int) bool {
@@ -186,11 +186,11 @@ func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int)
 }
 
 //GetQbyReverseInflation : takes n and offset from other routines and returns,
-//in the parameter, a q appropriate for that n; the q is used to "deconstruct" an
+//in the parameter, a q appropriate for that n, the q is used to "deconstruct" an
 //inflated potPrime so that the offset can be re-traced to its actual natural
-//progression position so that its effect can be retrieved; this is a VERY INEFFICIENT
-//func, and is meant for testing and analyis only; it has been used to search for sextuplets
-//and returns correct results;
+//progression position so that its effect can be retrieved, this is a VERY INEFFICIENT
+//func, and is meant for testing and analyis only, it has been used to search for sextuplets
+//and returns correct results,
 //Lookup tables are the efficient way to see whether an offset is has an effect
 //of interest, if offset is in an inflated region then returns -1 in param
 func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int) error {
@@ -265,10 +265,10 @@ func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int)
 
 }
 
-//GetResultAtCrossNumByReverseInflation : Alternative to GetResultAtCrossNum(); Used for
-//testing and analysis because it is very inefficient and slow; It uses GetQbyReverseInflation()
+//GetResultAtCrossNumByReverseInflation : Alternative to GetResultAtCrossNum(), Used for
+//testing and analysis because it is very inefficient and slow, It uses GetQbyReverseInflation()
 //which re-contructs the inflation at n to get the q needed to take the offset back to its
-//natural progression index to get its effect; addResult is changed and will be accumulated in the calling
+//natural progression index to get its effect, addResult is changed and will be accumulated in the calling
 //function, n is the current n-level (0 based) one is testing, offset is calculated by
 //GetCrossNumModDirect() or GetCrossNumMod()
 func (prime *PrimeGTE31) GetResultAtCrossNumByReverseInflation(addResult *int, offset, n *big.Int) bool {
@@ -313,7 +313,7 @@ func (prime *PrimeGTE31) GetResultAtCrossNumByReverseInflation(addResult *int, o
 }
 
 //MemberAtN : return the member of the potPrime family at
-//n; e.g. family 31, n=0 return 31, n=1 return 61, n=2 return 91, etc.
+//n, e.g. family 31, n=0 return 31, n=1 return 61, n=2 return 91, etc.
 func (p *PrimeGTE31) MemberAtN(n, returnMember *big.Int) {
 	returnMember.Mul(n, TemplateLength)
 	returnMember.Add(returnMember, p.Prime.Value())
@@ -332,12 +332,12 @@ func (prime *PrimeGTE31) displayResultsAtCrossNum(n *big.Int) string {
 }
 
 //HumanReadable : Output to f a neatly packaged human readable format
-//of the found Tuplet's details; Using this one can translate a .rawdata
+//of the found Tuplet's details, Using this one can translate a .rawdata
 //file by sending in the Tnumber and the effect integer, tNum29 is the
-//corresponding TNumber from the 29Basis file and must be calculated; and notify
-//is any message that needs to be communicate; generally used to inform in the pretty
-//file that a basis number change occurred; currently it does check using ProbablyPrime
-//if the found primes are probably prime; pretty much useless since they must be! But
+//corresponding TNumber from the 29Basis file and must be calculated, and notify
+//is any message that needs to be communicate, generally used to inform in the pretty
+//file that a basis number change occurred, currently it does check using ProbablyPrime
+//if the found primes are probably prime, pretty much useless since they must be! But
 //at higher numbers it is worthwhile because it would show in the pretty data if an
 //erroneous result (false negative) has ever been seen.
 func HumanReadable(tNum *big.Int, symbol *int, tNum29, notify *string, f *os.File) {
@@ -498,9 +498,9 @@ func GeneratePrimeTupletsInteractive() {
 	GeneratePrimeTuplets(ctrl)
 }
 
-//GeneratePrimeTuplets : The engine func that generates juusprime Tuplets; it can
+//GeneratePrimeTuplets : The engine func that generates juusprime Tuplets, it can
 //be called with a GenPrimesStruct already filled in if you are comfortable
-//with that; otherwise recommended to use GeneratePrimeTupletsInteractive
+//with that, otherwise recommended to use GeneratePrimeTupletsInteractive
 func GeneratePrimeTuplets(ctrl *GenPrimesStruct) {
 	var (
 		inResult, addResult int
@@ -866,7 +866,7 @@ func (prime *PrimeGTE31) ShowDetails(withPausing bool) {
 
 //showRawDetails : display the basic data of the prime structure
 //and the "raw" crossing effects. Natural progressions are derived from
-//this data; the func is complicated, much easier to do on paper! But it
+//this data, the func is complicated, much easier to do on paper, But it
 //is a good check that the printed data matches the paper data
 func (prime *PrimeGTE31) showRawDetails() {
 
@@ -903,7 +903,7 @@ func (prime *PrimeGTE31) showRawDetails() {
 	fmt.Println("")
 }
 
-//showNaturalProgressionSimple : Show the natural progression for the GTE 31;
+//showNaturalProgressionSimple : Show the natural progression for the GTE 31,
 //This is the simple(r) format as opposed to the detailed one.
 func (prime *PrimeGTE31) showNaturalProgressionSimple() {
 	fmt.Println("P", prime.Prime.value, "Natural Progression, simple")
@@ -930,8 +930,8 @@ func (prime *PrimeGTE31) showNaturalProgressionSimple() {
 	fmt.Println("")
 }
 
-//ShowNaturalProgression : shows the natural progression of GTE 31's;
-//This is the detailed format as opposed to the simpler one;
+//ShowNaturalProgression : shows the natural progression of GTE 31's,
+//This is the detailed format as opposed to the simpler one
 func (prime *PrimeGTE31) showNaturalProgression() {
 	//Those with an insert at 0/1 (natural progression-wise): the insert needs to be placed at the
 	//end of the sequence, this happens naturally for all the calcs, and for most of the detail displays, but
@@ -1071,7 +1071,7 @@ func (prime *PrimeGTE31) getFamilyFactoredN(len, returnHereN *big.Int) {
 	returnHereN.Div(returnHereN, prime.Prime.fam2pDiff)
 }
 
-//InitGTE31 : fill in the appropriate data for the particular GTE 31 prime; in essence
+//InitGTE31 : fill in the appropriate data for the particular GTE 31 prime, in essence
 //these are "constants" associated with that GTE 31 prime, they can be calculated with
 //pen and paper
 func InitGTE31(prime *PrimeGTE31) {
@@ -1479,7 +1479,7 @@ func InitGTE31(prime *PrimeGTE31) {
 //of the same family, see GetCritLen for between families,
 //given fixedN (a chosen, fixed n level),
 //and n the n-level you want to compare to, calculate the number of
-//Templates between them; prime is a *PrimeGTE31, and
+//Templates between them, prime is a *PrimeGTE31, and
 //abs flag is whether to return the absolute value, result is returned in last parameter
 func (prime *PrimeGTE31) GetCritLength(abs bool, fixedN, n, returnHereLen *big.Int) error {
 	// d( 2p + cd + 2cN ) d, diff; p, prime value; c=30; N a fixed chosen "n"

@@ -70,7 +70,7 @@ func ConfigFilename() string {
 
 //Configure : should be called at least once or routines will have to
 //default to HOME folder for writing/reading data, the answers will be written to
-//config file; for now simple setup instead of full blown ini file
+//config file, for now simple setup instead of full blown ini file
 func Configure() {
 	fmt.Println("\njuusprime Configuration:")
 	fmt.Println("")
@@ -155,7 +155,7 @@ func ReadConfig() {
 }
 
 //setPath : hint is a short description of which path is being
-//set and currPath the variable current setting; Only accepts folders
+//set and currPath the variable current setting, Only accepts folders
 func setPath(hint string, currPath *string) {
 	var (
 		path        string
@@ -182,8 +182,8 @@ func setPath(hint string, currPath *string) {
 }
 
 //DisplayProgressBookend : Display the msg, isStarting is true for
-//the first call (a header) and false for the end call (a footer); it
-//returns a Time; meant to be used to wrap DisplayProgress
+//the first call (a header) and false for the end call (a footer), it
+//returns a Time, meant to be used to wrap DisplayProgress
 func DisplayProgressBookend(msg string, isStarting bool) time.Time {
 	var theTime time.Time
 	switch isStarting {
@@ -202,12 +202,12 @@ func DisplayProgressBookend(msg string, isStarting bool) time.Time {
 }
 
 //DisplayProgress : from and to are usually ranges of TNumbers, but it
-//depends on what you want to measure; part is how fine to divide the
+//depends on what you want to measure, part is how fine to divide the
 //notifications: for example, 20 will partition it into 5% blocks, 100
-//into 1% blocks; this is setup as a closure func; its virtue is being
+//into 1% blocks, this is setup as a closure func, its virtue is being
 //able to accurately measure progress even when the index vs TNum do
-//not match; ie. "jerky" progress; primarily used when generating "small"
-//int/int64 compatible ranges; see also DisplayProgressBig
+//not match, ie. "jerky" progress, primarily used when generating "small"
+//int/int64 compatible ranges, see also DisplayProgressBig
 func DisplayProgress(from, to int64, part int) func() {
 	calcRange := to - from + 1
 	if part > 100 {
@@ -227,9 +227,9 @@ func DisplayProgress(from, to int64, part int) func() {
 }
 
 //DisplayProgressBig : closure for displaying progress for data where the range
-//is not evenly, ie. 1 to 1, probed; for example, a range from 234 to 2345
-//which is actually indexed randomly in that range; used when processing GTE 31's
-//against the Basis29 file; works for huge numbers
+//is not evenly, ie. 1 to 1, probed, for example, a range from 234 to 2345
+//which is actually indexed randomly in that range, used when processing GTE 31's
+//against the Basis29 file, works for huge numbers
 func DisplayProgressBig(from, to *big.Int, part int64) func(*big.Int, *big.Int) {
 	printResult := big.NewInt(0)
 	calcRange := big.NewInt(0).Sub(to, from)
@@ -309,7 +309,7 @@ func FileOpen(p string, append bool) (*os.File, error) {
 }
 
 //FileClose : close a file previously opened with FileOpen
-//with error checking; usually called with defer
+//with error checking, usually called with defer
 func FileClose(f *os.File) {
 	if err := f.Close(); err != nil {
 		if errors.Is(err, os.ErrClosed) {

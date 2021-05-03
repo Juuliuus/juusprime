@@ -23,8 +23,8 @@ var (
 
 //GetCritLength : deprecated, moved to PrimeGTE31 method, given fixedN (a chosen, fixed n level),
 //and n the n-level you want to compare to, calculate the number of
-//Templates between them; prime is a *PrimeGTE31, and
-//abs flag is whether to return the absolute value; result is returned in last parameter,
+//Templates between them, prime is a *PrimeGTE31, and
+//abs flag is whether to return the absolute value, result is returned in last parameter
 func GetCritLength(abs bool, p *PrimeGTE31, fixedN, n, returnHereLen *big.Int) error {
 	//TODO remove on major version change
 	// d( 2p + cd + 2cN ) d, diff; p, prime value; c=30; N a fixed chosen "n"
@@ -699,7 +699,7 @@ func P59() *PrimeGTE31 {
 //getResultAtCrossNumANALYSIS : for analysis only, an alternative routine that
 //provides results in an analysis format,
 //tests the GTE 31 primes at the given offset (crossing number) for the
-//applicable effect; addResult is changed and will be accumulated in the calling
+//applicable effect, addResult is changed and will be accumulated in the calling
 //function, n is the current level (0 based) one is testing, int result is used as a flag
 func (prime *PrimeGTE31) getResultAtCrossNumANALYSIS(addResult *int, offset, n *big.Int) (bool, int) {
 	//if the function does not find  that there is an effect at offset & n then it is a
