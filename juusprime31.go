@@ -55,9 +55,9 @@ func (lu *primeGT30Lookup) String() string {
 //PrimeGTE31InflationModel : This models a natural progression such that
 //one can project forward to any n any position in the natural Progression
 //and/or reverse engineer, or de-inflate, an inflated potPrime, used for
-//analysis and testing, it also holds effect information; Wait is used as a helper
+//analysis and testing, it also holds effect information, Wait is used as a helper
 //var when re-constructing the q var, which is the inflation factor which is then
-//based on n level
+//based on n level, see note in code at the getPrimeGTE31InflationModel() func
 type PrimeGTE31InflationModel struct {
 	Q30     int
 	CEffect int
@@ -67,7 +67,7 @@ type PrimeGTE31InflationModel struct {
 }
 
 //getPrimeGTE31InflationModel : returns a pointer to an initialized
-//PrimeGTE31InflationModel struct
+//PrimeGTE31InflationModel struct, read comment in code block
 func getPrimeGTE31InflationModel() *PrimeGTE31InflationModel {
 	r := &PrimeGTE31InflationModel{
 		Q30:     0,
@@ -75,9 +75,31 @@ func getPrimeGTE31InflationModel() *PrimeGTE31InflationModel {
 		Wait:    false,
 	}
 	return r
+	//The routines which fill this object are, uh, rather complex. But not
+	//horrible, they are filled in by sending in a slice which contains constants
+	//based on the natural progressions natural skip spaces. The filling routine
+	//then knows where to put natural skip spaces and also inflation spaces.
+
+	//However NOTE this: the pP's 41, 49, 59 are "special", in that these have skip
+	//spaces at the END of the natural progression.
+	//Let . equal a skip space, an o equal to a no effect crossing, then the last blocks
+	//of these pP's are: 41 = o.   49 = .o.    59 = .o.
+	//However the last . DOES NOT belong to that block, it is in actuality that last .
+	//belongs to crossing 0 and to be able to accurately track that skip space's
+	//inflated position the inflation space needs to be added correctly. One could
+	//argue that it is not terribly important to know exactly how that inflates, but
+	//then again, accuracy is a good thing and my have knock on effects.
+
+	//Let a capital O be the inserted inflation space:
+	//Inaccurate is to simply attach the inflation space to the end like so for
+	//41 at n 1,2: o.O, o.OO
+	//But the dot in acuality should be the last thing in the inflation thusly:
+	//oO., oOO.
+	//Correct placement of the O inflation spaces:
+	//41 = oO.   49 = .oO.    59 = .oO.
 }
 
-//PrimeGTE31 : Structure to use for primes greater than or equal to 31;
+//PrimeGTE31 : Structure to use for primes greater than or equal to 31,
 //the sextuplet program only uses this for primes 31, 37, 41, 43, 47, "49",
 //53, and 59; there are no need for others since these can do the checking
 //for sextuplets via lookups all the way out to infinity + 1
@@ -1193,8 +1215,7 @@ func InitGTE31(prime *PrimeGTE31) {
 		prime.Prime.famStartDiff.SetInt64(5) //Ts41 - Ts43 = 56 -> 61 = 5
 
 		prime.subN = fam41SubN
-
-		sl := []int{3, 6, 10, 14, 18, 21, 25, 29, 32, 36, 39, 999}
+		sl := []int{3, 6, 10, 14, 18, 21, 25, 29, 32, 36, 40, 999}
 		fillCQ(sl)
 		prime.CQModel[2].CEffect = CLQuint29
 		prime.CQModel[8].CEffect = CRQuint13
@@ -1326,7 +1347,7 @@ func InitGTE31(prime *PrimeGTE31) {
 		prime.Prime.famStartDiff.SetInt64(13) //Ts49 - Ts53 = 80 -> 93 = 13
 		prime.subN = fam49SubN
 
-		sl := []int{2, 4, 7, 9, 12, 15, 17, 20, 22, 25, 28, 30, 33, 35, 38, 40, 43, 46, 47, 999}
+		sl := []int{2, 4, 7, 9, 12, 15, 17, 20, 22, 25, 28, 30, 33, 35, 38, 40, 43, 46, 48, 999}
 		fillCQ(sl)
 		prime.CQModel[6].CEffect = CXNoTrack  //cX_23;
 		prime.CQModel[16].CEffect = CXNoTrack //cX_17;
@@ -1414,7 +1435,7 @@ func InitGTE31(prime *PrimeGTE31) {
 		prime.Prime.famStartDiff.SetInt64(8) //Ts59 - Ts61 = 116 -> 124 = 8
 		prime.subN = fam59SubN
 
-		sl := []int{1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 57, 999}
+		sl := []int{1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 999}
 		fillCQ(sl)
 		prime.CQModel[15].CEffect = CLQuint29
 		prime.CQModel[23].CEffect = CXNoTrack //cX_25;

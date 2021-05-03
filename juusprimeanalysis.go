@@ -895,8 +895,8 @@ func AnalyzeTNumbersInteractive() {
 
 //InflatePrimeGTE31Position : Given any idx <= prime.value-1 use n to calculate
 //its expanded position. This is similar to the Lookup Table where c + qn is used,
-//but this can be for any position in the prime's cycle using the CQModel slice;
-//used for analysis, offset result returned in parameter
+//but this can be for any position in the prime's cycle using the CQModel slice,
+//used for analysis, offset result returned in parameter, effect at that pos in result
 func InflatePrimeGTE31Position(prime *PrimeGTE31, idx int, n, returnHereOffset *big.Int) (effect int) {
 	if idx >= len(prime.CQModel) {
 		fmt.Println(fmt.Sprintf("InflatePrimeGTE31Position: idx %v is out of range 0-%v", idx, len(prime.CQModel)-1))
