@@ -185,13 +185,27 @@ func (prime *PrimeGTE31) GetResultAtCrossNum(addResult *int, offset, n *big.Int)
 	return false
 }
 
+//InflateCrossingNum : Given a natural progression crossing number and n
+//return in parameter the inflated value for the crossing and in result the
+//effect at those crossing numbers, this func is intended for analysis
+func (prime *PrimeGTE31) InflateCrossingNum(crossNum int, n, returnHereInflated *big.Int) int {
+	//inflated = big.NewInt(-1)
+	check := int(prime.Prime.value.Int64()) - 1
+	if crossNum < 0 || crossNum > check {
+		fmt.Println("InflateCrossingNum: crossNum out of range.")
+
+		return -1
+	}
+	return InflatePrimeGTE31Position(prime, crossNum, n, returnHereInflated)
+}
+
 //GetQbyReverseInflation : takes n and offset from other routines and returns,
 //in the parameter, a q appropriate for that n, the q is used to "deconstruct" an
 //inflated potPrime so that the offset can be re-traced to its actual natural
 //progression position so that its effect can be retrieved, this is a VERY INEFFICIENT
 //func, and is meant for testing and analyis only, it has been used to search for sextuplets
 //and returns correct results,
-//Lookup tables are the efficient way to see whether an offset is has an effect
+//Lookup tables are the efficient way to see whether an offset has an effect
 //of interest, if offset is in an inflated region then returns -1 in param
 func (prime *PrimeGTE31) GetQbyReverseInflation(n, offset, returnHereQ *big.Int) error {
 	//see notes at bottom of func

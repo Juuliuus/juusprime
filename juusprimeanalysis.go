@@ -913,6 +913,86 @@ func InflatePrimeGTE31Position(prime *PrimeGTE31, idx int, n, returnHereOffset *
 	return
 }
 
+//BuildInflationMap : Builds, from first principles, the inflated structure for p at
+//n by repeadedly adding the values, essentially equivalent to doing the inflation
+//by hand, used primarily as a check to other inflation routines
+func BuildInflationMap(p *PrimeGTE31, n *big.Int) {
+	realC := big.NewInt(-1)
+	tNum := big.NewInt(0)
+	lastTNum := big.NewInt(0)
+	tDiff := big.NewInt(0)
+	nPlus1 := big.NewInt(0).Set(n)
+	nPlus1.Add(nPlus1, big1)
+
+	//start gets our pP at n (31,61,91,...etc for pp(31) and so on)
+	//starts initial value becomes the constant to be added
+	start := big.NewInt(0)
+	p.MemberAtN(n, start)
+	addByHand := big.NewInt(0).Set(start)
+	//then we square start so that we will begin at that pP's
+	//effective starting TNumber
+	start.Mul(start, start)
+
+	lastTNum = IntToTNum(start)
+
+	nCntrl := int(n.Int64())
+	msg := fmt.Sprintf("Inflation Map for prime %v: n=%v -->  pP=%v", p.Prime.value, n, addByHand)
+
+	const (
+		inflate = "TNumbers in dashes (eg. -123-) are spaces added by inflation"
+		skip    = "TNumbers in with > (eg. > 123) are the natural progression skip spaces"
+	)
+
+	fmt.Println("")
+	fmt.Println(inflate)
+	fmt.Println(skip)
+	fmt.Println("=================")
+	fmt.Println(msg)
+	fmt.Println("=================")
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 1)
+	wFmt := "%s\t  %v\t %v \n"
+
+	//need to print out past the end of the section to force the
+	//last skip space results to show, so we iterate to 31 instead of 30
+	//so there will be a final row where q again is equal to 0
+	for i := 0; i < 31; i++ {
+		realC.Add(realC, big1)
+		tNum = IntToTNum(start)
+		tDiff.Sub(tNum, lastTNum)
+
+		//determines if a natural skip occurred
+		if tDiff.Cmp(nPlus1) == 1 {
+			fmt.Fprintf(w, fmt.Sprintf(wFmt, "", fmt.Sprintf("> %v", tDiff.Sub(tNum, big1)), fmt.Sprintf("c=%v", realC)))
+			realC.Add(realC, big1)
+		}
+
+		if i > 29 {
+			w.Flush()
+			fmt.Println("--cycle complete--")
+			break
+		}
+
+		//print the q line
+		fmt.Fprintf(w, fmt.Sprintf(wFmt, fmt.Sprintf("q = %v", i), tNum, fmt.Sprintf("c=%v", realC)))
+		start.Add(start, addByHand)
+		lastTNum.Set(tNum)
+
+		//add inflation spaces
+		for j := 1; j <= nCntrl; j++ {
+			realC.Add(realC, big1)
+			fmt.Fprintf(w, fmt.Sprintf(wFmt, "", fmt.Sprintf("-%v-", tNum.Add(tNum, big1)), fmt.Sprintf("c=%v", realC)))
+		}
+
+	}
+	fmt.Println("=================")
+	fmt.Println(msg)
+	fmt.Println("=================")
+	fmt.Println(inflate)
+	fmt.Println(skip)
+	fmt.Println("")
+
+}
+
 //CheckTwinSextuplet : testing, check rawdata files for twin
 //Sextuplets, can also serve as template for other quick tests one wants.
 func CheckTwinSextuplet(filename string, out *os.File) {
